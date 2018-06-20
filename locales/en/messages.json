@@ -6,9 +6,6 @@
         "message": "Betaflight Configurator",
         "description": "Title of the application window, usually not translated"
     },
-    "error": {
-        "message": "Error: {{errorMessage}}"
-    },
     "warningTitle": {
         "message": "Warning"
     },
@@ -75,18 +72,12 @@
     "language_it": {
         "message": "Italiano (it)"
     },
-    "language_ja": {
-        "message": "\u65E5\u672C\u8A9E (ja)"
-    },
     "language_ko": {
         "message": "\ud55c\uad6d\uc5b4 (ko)"
     },
     "language_lv": {
         "message": "Latvie\u0161u (lv)"
     },
-    "language_pt": {
-        "message": "Portugu\u00EAs (pt)"
-    },    
     "language_zh_CN": {
         "message": "\u7b80\u4f53\u4e2d\u6587 (zh_CN)"
     },
@@ -374,8 +365,7 @@
     },
 
     "infoVersions": {
-        "message" : "Running - OS: <strong>{{operatingSystem}}</strong>, Chrome: <strong>{{chromeVersion}}</strong>, Configurator: <strong>{{configuratorVersion}}</strong>",
-        "description": "Message that appears in the GUI log panel indicating operating system, Chrome version and Configurator version"
+        "message" : "Running - OS: <strong>$1</strong>, Chrome: <strong>$2</strong>, Configurator: <strong>$3</strong>"
     },
     "releaseCheckLoaded": {
         "message" : "Loaded release information for $1 from GitHub."
@@ -562,7 +552,7 @@
         "message": "<a href=\"https://github.com/Betaflight\" target=\"_blank\">GitHub</a>"
     },
     "defaultSupport5": {
-        "message": "<a href=\"https://slack.betaflight.com\" target=\"_blank\">Betaflight devs on slack</a>"
+        "message": "<a href=\"http://betaflight.tk/slack\" target=\"_blank\">Betaflight devs on slack</a>"
     },
 
     "initialSetupBackupAndRestoreApiVersion": {
@@ -935,7 +925,7 @@
         "message": "Motor direction is reversed"
     },
        "configurationReverseMotorSwitchHelp": {
-        "message": "This option configures the mixer to expect the motor direction to be reversed and the propellers to be on accordingly. <strong>Warning:</strong> This does not reverse the motor direction. Use the configuration tool for your ESCs or switch the ESC - motor wiring order to achieve this. Also, make sure to check with propellers off that your motors are rotating in the directions shown in the diagram above before attempting to arm."
+        "message": "Enabling this option will tell Betaflight that motors and props are set to run in the reverse direction."
     },
     "configurationAutoDisarmDelay": {
         "message": "Disarm motors after set delay [seconds] (Requires MOTOR_STOP feature)"
@@ -968,16 +958,13 @@
         "message": "This is the value that is sent to the ESCs when the craft is disarmed. Set this to a value that has the motors stopped (1000 for most ESCs)."
     },
     "configurationDshotBeeper": {
-        "message": "Dshot Beacon Configuration"
+        "message": "DSHOT Beacon Configuration"
     },
     "configurationUseDshotBeeper": {
-        "message": "Use Dshot beacon (use motors to sound beeps when disarmed)"
+        "message": "Use DSHOT beacon (use motors to sound beeps when disarmed)"
     },
     "configurationDshotBeaconTone": {
         "message": "Beacon Tone"
-    },
-    "configurationDshotBeaconHelp": {
-        "message": "The Dshot beacon uses the ESCs and motors to produce sound. This means that the Dshot beacon cannot be used when the motors are spinning. In Betaflight 3.4 and newer, when arming is attempted while the Dshot beacon is active, there is a 2 second delay after the last Dshot beacon tone before the craft is armed. This is to prevent the Dshot beacon functionality from interfering with the Dshot commands sent when arming.<br/><strong>Warning:</strong> Since the Dshot beacon is running current through your motors when active, this can result in excessive heat production and damage to your motors and / or ESCs if the beacon strength is set too high. Use BLHeli Configurator or the BLHeli Suite to adjust and test the beacon strength."
     },
     "configurationBeeper": {
         "message": "Beeper Configuration"
@@ -1007,10 +994,13 @@
         "message": "Warning beeps when battery is getting low (repeats)"
     },
     "beeperGPS_STATUS": {
-        "message": "Use the number of beeps to indicate how many GPS satellites were found"
+        "message": ""
     },
     "beeperRX_SET": {
-        "message": "Beeps when aux channel is set for beep"
+        "message": "Beeps when aux channel is set for beep or beep sequence how many satellites has found if GPS enabled"
+    },
+    "beeperDISARM_REPEAT": {
+        "message": "Beeps sounded while stick held in disarm position"
     },
     "beeperACC_CALIBRATION": {
         "message": "Accelerometer inflight calibration completed confirmation"
@@ -1024,29 +1014,17 @@
     "beeperMULTI_BEEPS": {
         "message": ""
     },
-    "beeperDISARM_REPEAT": {
-        "message": "Beeps sounded while stick held in disarm position"
-    },
     "beeperARMED": {
-        "message": "Warning beeps when board is armed with motors off when idle (repeats until board is disarmed or throttle is increased)"
+        "message": "Warning beeps when board is armed (repeats until board is disarmed or throttle is increased)"
     },
     "beeperSYSTEM_INIT": {
         "message": "Initialisation beeps when board is powered on"
     },
     "beeperUSB": {
-        "message": "Beep when flight controller is powered from USB. Turn this off if you don't want the beeper to be on when on the workbench"
+        "message": "Beep when flight controller is powered from USB. Turn this off when you don't want the beeper on the workbench"
     },
     "beeperBLACKBOX_ERASE": {
         "message": "Beep when blackbox erase completes"
-    },
-    "beeperCRASH_FLIP": {
-        "message": "Beep when crash flip mode is active"
-    },
-    "beeperCAM_CONNECTION_OPEN": {
-        "message": "Beep when the 5 key camera control is entered"
-    },
-    "beeperCAM_CONNECTION_CLOSE": {
-        "message": "Beep when the 5 key camera control is exited"
     },
     "configuration3d": {
         "message": "3D ESC/Motor Features"
@@ -1269,9 +1247,6 @@
     },
     "pidTuningDtermSetpointHelp": {
         "message": "This parameter determines the stick accelerating effect within derivative component.<br> Value of 0 equals to old Measuemenent method where D only tracks gyro, while value of 1 equals to old Error method with equal gyro and stick tracking ratio.<br> Lower value equals to slower/smoother stick response, while higher value provides more stick acceleration response.<br> Note that RC interpolation is recommended to be enabled with higher values to prevent control kicks making noise."
-    },
-    "pidTuningDtermSetpointTransitionWarning": {
-        "message": "<span class=\"message-negative\"><strong>$t(warningTitle.message):<\/strong> The use of a D Setpoint transition greater than 0 and less than 0.1 is highly discouraged. Doing so may lead instability and reduced stick responsiveness as the sticks cross the centre point.<\/span>"
     },
     "pidTuningProportional": {
         "message": "Proportional"
@@ -1615,9 +1590,6 @@
     "adjustmentsFunction24": {
         "message": "Horizon Strength Adjustment"
     },
-    "adjustmentsFunction25": {
-        "message": "PID-Audio Selection"
-    },
     "adjustmentsSave": {
         "message": "Save"
     },
@@ -1784,25 +1756,6 @@
     },
     "gpsSignalQty": {
         "message": "Qty"
-    },
-
-    "motorsVoltage": {
-        "message": "Voltage:"
-    },
-    "motorsADrawing": {
-        "message": "Amperage:"
-    },
-    "motorsmAhDrawn": {
-        "message": "Amp. drawn:"
-    },
-    "motorsVoltageValue": {
-        "message": "$1 V"
-    },
-    "motorsADrawingValue": {
-        "message": "$1 A"
-    },
-    "motorsmAhDrawnValue": {
-        "message": "$1 mAh"
     },
 
     "motorsText":{
@@ -2140,9 +2093,6 @@
     "firmwareFlasherNoReboot": {
         "message": "No reboot sequence"
     },
-    "firmwareFlasherOnlineSelectBuildType": {
-        "message": "Select build type to see available boards."
-    },
     "firmwareFlasherOnlineSelectBoardDescription": {
         "message": "Select your board to see available online firmware releases - Select the correct firmware appropriate for your board."
     },
@@ -2190,21 +2140,6 @@
     },
     "firmwareFlasherOptionLoading": {
         "message": "Loading ..."
-    },
-    "firmwareFlasherOptionLabelBuildTypeRelease": {
-        "message": "Release"
-    },
-    "firmwareFlasherOptionLabelBuildTypeReleaseCandidate": {
-        "message": "Release And Release Candidate"
-    },
-    "firmwareFlasherOptionLabelBuildTypeDevelopment": {
-        "message": "Development"
-    },
-    "firmwareFlasherOptionLabelBuildTypeAKK3_3": {
-        "message": "3.3 AKK & RDQ VTX Patch"
-    },
-    "firmwareFlasherOptionLabelBuildTypeAKK3_4": {
-        "message": "3.4 AKK & RDQ VTX Patch"
     },
     "firmwareFlasherOptionLabelSelectFirmware": {
         "message": "Choose a Firmware / Board"
@@ -2654,74 +2589,83 @@
     "pidTuningNonProfileFilterSettings": {
         "message": "Profile independent Filter Settings"
     },
-    "pidTuningGyroLowpassFiltersGroup": {
-        "message": "Gyro Lowpass Filters"
-    },
     "pidTuningGyroLowpassFrequency": {
-        "message": "Gyro Lowpass 1 Cutoff Frequency [Hz]"
+        "message": "Gyro Soft Lowpass Frequency [Hz]"
     },
-    "pidTuningGyroLowpassType": {
-        "message": "Gyro Lowpass 1 Filter Type"
+    "pidTuningGyroLowpassFrequencyHelp": {
+        "message": "Gyro Soft Lowpass Frequency [Hz]"
     },
-    "pidTuningGyroLowpass2Frequency": {
-        "message": "Gyro Lowpass 2 Cutoff Frequency [Hz]"
-    },
-    "pidTuningGyroLowpass2Type": {
-        "message": "Gyro Lowpass 2 Filter Type"
-    },
-    "pidTuningGyroNotchFiltersGroup": {
-        "message": "Gyro Notch Filters"
+    "pidTuningGyroNotch1Enable": {
+        "message": "Enable Gyro Notch Filter 1"
     },
     "pidTuningGyroNotch1Frequency": {
-        "message": "Gyro Notch Filter 1 Center Frequency [Hz]"
+        "message": "Gyro Notch Filter 1 Frequency [Hz]"
+    },
+    "pidTuningGyroNotch2Enable": {
+        "message": "Enable Gyro Notch Filter 2"
     },
     "pidTuningGyroNotch2Frequency": {
-        "message": "Gyro Notch Filter 2 Center Frequency [Hz]"
+        "message": "Gyro Notch Filter 2 Frequency [Hz]"
+    },
+    "pidTuningGyroNotchFrequencyHelp": {
+        "message": "Gyro Notch Filter Frequency in Hz"
     },
     "pidTuningGyroNotch1Cutoff": {
-        "message": "Gyro Notch Filter 1 Cutoff Frequency [Hz]"
+        "message": "Gyro Notch Filter Cutoff 1 Frequency [Hz]"
     },
     "pidTuningGyroNotch2Cutoff": {
-        "message": "Gyro Notch Filter 2 Cutoff Frequency [Hz]"
+        "message": "Gyro Notch Filter Cutoff 2 Frequency [Hz]"
     },
-    "pidTuningNotchFilterHelp": {
-        "message": "The Notch Filter has a Center and a Cutoff. The filter is symmetrical. The Center Frequency is the center of the filter and the Cutoff Frequency is where Notch filter starts. For example with Notch Cutoff of 160 and Notch Center of 260 it means the range is 160-360Hz with most attenuation around center"
+    "pidTuningGyroNotchCutoffHelp": {
+        "message": "Gyro Notch Filter Cutoff Frequency in Hz (This is where notch filter starts. For example with notch filter 160 and notch Hz of 260 it means the range is 160-360Hz with most attenuation around center)"
     },
     "pidTuningFilterSettings": {
-        "message": "Profile dependent Filter Settings"
+        "message": "Filter Settings"
     },
-    "pidTuningDTermLowpassFiltersGroup": {
-        "message": "D Term Lowpass Filters"
-    },    
+    "pidTuningPresets": {
+        "message": "Filter Presets"
+    },
+    "piTuningPresetOptionLoading": {
+        "message": "Loading ..."
+    },
     "pidTuningDTermLowpassType": {
-        "message": "D Term Lowpass 1 Filter Type"
+        "message": "D-Term Lowpass Filter"
+    },
+    "pidTuningDTermLowpassTypeTip": {
+        "message": "Select D-Term lowpass filter type to use. Default is BIQUAD"
     },
     "pidTuningDTermLowpassFrequency": {
-        "message": "D Term Lowpass 1 Cutoff Frequency [Hz]"
+        "message": "D Term Lowpass Frequency [Hz]"
     },
-    "pidTuningDTermLowpass2Frequency": {
-        "message": "D Term Lowpass 2 Cutoff Frequency [Hz]"
+    "pidTuningDTermLowpassFrequencyHelp": {
+        "message": "D Term Lowpass Frequency [Hz] (0 means disabled)"
     },
-    "pidTuningDTermNotchFiltersGroup": {
-        "message": "D Term Notch Filters"
-    },    
+    "pidTuningDTermNotchEnable": {
+        "message": "Enable D Term Notch Filter"
+    },
     "pidTuningDTermNotchFrequency": {
-        "message": "D Term Notch Filter Center Frequency [Hz]"
+        "message": "D Term Notch Filter Frequency [Hz]"
+    },
+    "pidTuningDTermNotchFrequencyHelp": {
+        "message": "D Term Notch Filter Frequency [Hz] (0 means disabled)"
     },
     "pidTuningDTermNotchCutoff": {
-        "message": "D Term Notch Filter Cutoff Frequency [Hz]"
+        "message": "D Term Notch Filter Cutoff [Hz]"
     },
-    "pidTuningYawLospassFiltersGroup": {
-        "message": "Yaw Lowpass Filters"
-    },    
+    "pidTuningDTermNotchCutoffHelp": {
+        "message": "D Term Notch Filter Cutoff in Hz (This is where notch filter starts. For example with notch filter 160 and notch Hz of 260 it means the range is 160-360Hz with most attenuation around center)"
+    },
     "pidTuningYawLowpassFrequency": {
-        "message": "Yaw Lowpass Cutoff Frequency [Hz]"
+        "message": "Yaw Lowpass Frequency [Hz]"
+    },
+    "pidTuningYawLowpassFrequencyHelp": {
+        "message": "Yaw Lowpass Frequency [Hz] (Yaw axis can sometimes be noiser than the rest. This filter only affects the P of yaw)"
     },
     "pidTuningVbatPidCompensation": {
         "message": "Vbat PID Compensation"
     },
     "pidTuningVbatPidCompensationHelp": {
-        "message": "Increases the PID values to compensate when Vbat gets lower. This will give more constant flight characteristics throughout the flight. The amount of compensation that is applied is calculated from the $t(powerBatteryMaximum.message) set in the $t(tabPower.message) page, so make sure that is set to something appropriate."
+        "message": "Increases the PID values to compensate when Vbat gets lower. This will give more constant flight characteristics throughout the flight. The amount of compensation that is applied is calculated from Maximum Cell Voltage set in Configuration page, so make sure that is set to something appropriate."
     },
     "configHelp2": {
         "message": "Arbitrary board rotation in degrees, to allow mounting it sideways / upside down / rotated etc. When running external sensors, use the sensor alignments (Gyro, Acc, Mag) to define sensor position independent from board orientation. "
@@ -2797,24 +2741,6 @@
     },
     "failsafeKillSwitchHelp": {
         "message": "Set this option to make the failsafe switch (Modes Tab) act as a direct kill switch, bypassing the selected failsafe procedure. <strong>Note:</strong> Arming is blocked with the failsafe kill switch in the ON position"
-    },
-    "failsafeSwitchTitle": {
-        "message": "Failsafe Switch"
-    },
-    "failsafeSwitchModeItem": {
-        "message": "Failsafe Switch Action"
-    },
-    "failsafeSwitchModeHelp": {
-        "message": "This option determines what happens when Failsafe is activated through AUX switch:<br/><strong>Stage 1</strong> activates Stage 1 failsafe. This is useful if you want to simulate the exact signal loss failsafe behavior.<br/><strong>Stage 2</strong> skips Stage 1 and activates the Stage 2 procedure immediately<br/><strong>Kill</strong> disarms instantly (your craft will crash)"
-    },
-    "failsafeSwitchOptionStage1": {
-        "message": "Stage 1"
-    },
-    "failsafeSwitchOptionStage2": {
-        "message": "Stage 2"
-    },
-    "failsafeSwitchOptionKill": {
-        "message": "Kill"
     },
 
     "powerButtonSave": {
@@ -3011,7 +2937,7 @@
         "message": "Scale [1/10th mV/A]"
     },
     "powerAmperageOffset": {
-        "message": "Offset [mA]"
+        "message": "Offset [mV]"
     },
 
     "powerBatteryHead": {
@@ -3094,36 +3020,6 @@
     },
     "osdSetupOpenFont": {
         "message": "Open Font File"
-    },
-    "osdSetupCustomLogoTitle": {
-        "message": "Boot logo:"
-    },
-    "osdSetupCustomLogoOpenImageButton": {
-        "message": "Select custom image&hellip;"
-    },
-    "osdSetupCustomLogoInfoTitle": {
-        "message": "Custom image:"
-    },
-    "osdSetupCustomLogoInfoImageSize": {
-        "message": "Size must be $t(logoWidthPx)×$t(logoHeightPx) pixels"
-    },
-    "osdSetupCustomLogoInfoColorMap": {
-        "message": "Must contain green, black and white pixels"
-    },
-    "osdSetupCustomLogoInfoUploadHint": {
-        "message": "Click <b>$t(osdSetupUploadFont.message)</b> to persist custom logo"
-    },
-    "osdSetupCustomLogoImageSizeError": {
-        "message": "Invalid image size: {{width}}×{{height}} (expected $t(logoWidthPx)×$t(logoHeightPx))"
-    },
-    "osdSetupCustomLogoColorMapError": {
-        "message": "The image contains an invalid color palette (only green, black and white are allowed)"
-    },
-    "osdSetupReplaceLogoImageSizeError": {
-        "message": "Invalid image size; expected $1×$2 instead of $3×$4"
-    },
-    "osdSetupReplaceLogoImageColorsError": {
-        "message": "The image contains an invalid color palette (only green, black and white are allowed)"
     },
     "osdSetupUploadFont": {
         "message": "Upload Font"
@@ -3344,10 +3240,6 @@
     "osdDescStatRtcDateTime": {
         "message": "Date and time from real time clock"
     },
-    "osdDescStatBattery": {
-        "message": "Voltage of the battery in real time"
-    },
-    
 
     "osdTimerSource": {
       "message": "Source:"
@@ -3386,9 +3278,6 @@
     "osdWarningCrashFlipMode": {
         "message": "Warns when flip over after crash mode is activated"
     },
-    "osdWarningEscFail": {
-        "message": "Enumerates a list with the ESCs/motors that are failing (RPM or temperature are out of the configured threshold)"
-    },
 
     "osdSectionHelpElements": {
         "message": "Enable or disable OSD elements."
@@ -3416,9 +3305,6 @@
     },
     "osdWritePermissions": {
         "message": "You don't have <span class=\"message-negative\">write permissions</span> for this file"
-    },
-    "osdButtonSaved": {
-        "message": "Saved"
     },
 
     "mainHelpArmed": {
