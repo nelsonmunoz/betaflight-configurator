@@ -1222,18 +1222,21 @@ TABS.pid_tuning.initialize = function (callback) {
         });
 
         $('select[name="tuningPresets"]').change(function(evt){
-            let data = $("option:selected", evt.target).data("data");
-            var presetBody = new ReleaseChecker(data['name'], data['download_url']);
-            presetBody.loadReleaseData(function (rawdata){
-                if(rawdata){
-                    $('div.presetAuthor .bottomarea').html(/#AUTHOR:(.*)/.exec(rawdata)[1]);
-                    $('div.presetDescription .bottomarea').html(/#DESCRIPTION:(.*)/.exec(rawdata)[1]);
-                    $('div.presetBody .bottomarea').text(rawdata.replace(/#.*([\n\r|\n|\r])/g,''));
-                    $('div.presetAuthor').show();
-                    $('div.presetDescription').show();
-                    $('div.presetBody').show();
-                }
-            });
+            if(evt.target.selectedIndex>0)
+            {
+                let data = $("option:selected", evt.target).data("data");
+                var presetBody = new ReleaseChecker(data['name'], data['download_url']);
+                presetBody.loadReleaseData(function (rawdata){
+                    if(rawdata){
+                        $('div.presetAuthor .bottomarea').html(/#AUTHOR:(.*)/.exec(rawdata)[1]);
+                        $('div.presetDescription .bottomarea').html(/#DESCRIPTION:(.*)/.exec(rawdata)[1]);
+                        $('div.presetBody .bottomarea').text(rawdata.replace(/#.*([\n\r|\n|\r])/g,''));
+                        $('div.presetAuthor').show();
+                        $('div.presetDescription').show();
+                        $('div.presetBody').show();
+                    }
+                });
+            }
         })
 
         // Setup model for rates preview
