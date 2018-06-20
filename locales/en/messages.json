@@ -2693,8 +2693,17 @@
     "pidTuningPresets": {
         "message": "Filter Presets"
     },
-    "piTuningPresetOptionLoading": {
+    "filterPresetOptionLoading": {
         "message": "Loading ..."
+    },
+    "filterPresetAuthor": {
+        "message": "Author"
+    },
+    "filterPresetDescription": {
+        "message": "Description"
+    },
+    "filterPresetBody": {
+        "message": "Content"
     },
     "pidTuningDTermLowpassFiltersGroup": {
         "message": "D Term Lowpass Filters"

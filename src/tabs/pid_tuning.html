@@ -464,24 +464,39 @@
                         <p i18n="tuningHelp"></p>
                     </div>
                 </div>
-                <div class="pidtuningpreset" style="width:100%;">
-                    <div class="profilep single-field" style="width:300px;">
-                        <div class="helpicon cf_tip" i18n_title="pidTuningDTermLowpassTypeTip" style="margin-top: 5px;"></div>
-                        <div class="head" i18n="pidTuningPresets"></div>
-                        <div class="bottomarea">
-                            <select name="tuningPresets">
-                                <option value="0" i18n="piTuningPresetOptionLoading">Loading ...</option>
-                            </select>
+                <div class="pidtuningpreset two_columns" style="width:100%;">
+                    <div class="two_columns_first" style="width: 20%;">
+                        <div class="profilep single-field" style="width:100%">
+                            <div class="head" i18n="pidTuningPresets"></div>
+                            <div class="bottomarea" style="padding-left:6px; padding-right:2px;width: calc(100% - 10px)">
+                                <select name="tuningPresets" style="width: 100%">
+                                    <option value="0" i18n="filterPresetOptionLoading">Loading ...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="presetAuthor single-field" style="display: none; margin-top: 5px; width:100%">
+                            <div class="head" i18n="filterPresetAuthor" style="display: block;"></div>
+                            <div class="bottomarea" style="padding-left:6px; padding-right:2px;width: calc(100% - 10px)">
+                                <span>Author</span>
+                            </div>
+                        </div>
+                        <div class="presetDescription single-field" style="display: none; margin-top: 5px; width:100%">
+                            <div class="head" i18n="filterPresetDescription" style="display: block;"></div>
+                            <div class="bottomarea" style="min-height: 97px; overflow-y: auto; padding-left:6px; padding-right:2px; width: calc(100% - 10px)">
+                                <span>Description</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="presetDetails single-field" style="width: 67%">
-                        <div class="head" i18n="pidTuningPresets"></div>
-                        <div class="bottomarea">
-                            <span>test</span>
+                    <div class="two_columns_second" style="max-width:80%">
+                        <div class="presetBody single-field" style="display: none;">
+                            <div class="head" i18n="filterPresetBody" style="width:100%"></div>
+                            <div class="bottomarea" style="white-space: pre-wrap; max-width:600px; min-width: 300px; padding-left:6px;padding-right:2px; height: 230px; flex: 1; overflow-y: auto;">
+                                <span>Body</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="wrapper">
+                <div>
                     <div class="cf_column two_columns">
                         <div class="gui_box grey topspacer pid_filter two_columns_first">
                             <table class="pid_titlebar new_rates">

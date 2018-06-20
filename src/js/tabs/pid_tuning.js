@@ -300,20 +300,20 @@ TABS.pid_tuning.initialize = function (callback) {
         }
 
         function populatePresets(data){
-            GUI.log('called');
             var presets_e = $('.profilep select[name="tuningPresets"]').empty();
             presets_e.append($("<option value='0'>{0}</option>".format('Choose a Preset ...')));
-            data.forEach(function(d){
-                GUI.log(d.name);
-                var select_e =
-                $("<option value='{0}'>{0}</option>".format(
-                    d.name.slice(0,-7),
-                    d.download_url
-                )).data('summary', d);
-                presets_e.append(select_e);
+            data.tree.forEach(function(file){
+                if( file.path.includes("Filters") && file.path.includes(".preset")){
+                    var filename=/(Filters-.*).preset/.exec(file.path)[1];
+                    var select_e =
+                    $("<option value='{0}'>{0}</option>".format(
+                        filename
+                    )).data('data', {'download_url':'https://raw.githubusercontent.com/ultrapresets/ultrapresets/master/betaflight/3.4/'+file.path,'name':filename});
+                    presets_e.append(select_e);
+                }
             });
         }
-        var presetChecker = new ReleaseChecker('presets', 'https://api.github.com/repos/ultrapresets/ultrapresets/contents/betaflight/3.4/Any/Official')
+        var presetChecker = new ReleaseChecker('presets', 'https://api.github.com/repos/ultrapresets/ultrapresets/git/trees/031e69de81ecf41ed45c8d23674252faf49cb6fc?recursive=1');
         presetChecker.loadReleaseData(populatePresets);
 
         $('input[id="gyroNotch1Enabled"]').change(function() {
@@ -1220,6 +1220,21 @@ TABS.pid_tuning.initialize = function (callback) {
                 GUI.log(i18n.getMessage('pidTuningEepromSaved'));
             });
         });
+
+        $('select[name="tuningPresets"]').change(function(evt){
+            let data = $("option:selected", evt.target).data("data");
+            var presetBody = new ReleaseChecker(data['name'], data['download_url']);
+            presetBody.loadReleaseData(function (rawdata){
+                if(rawdata){
+                    $('div.presetAuthor .bottomarea').html(/#AUTHOR:(.*)/.exec(rawdata)[1]);
+                    $('div.presetDescription .bottomarea').html(/#DESCRIPTION:(.*)/.exec(rawdata)[1]);
+                    $('div.presetBody .bottomarea').text(rawdata.replace(/#.*([\n\r|\n|\r])/g,''));
+                    $('div.presetAuthor').show();
+                    $('div.presetDescription').show();
+                    $('div.presetBody').show();
+                }
+            });
+        })
 
         // Setup model for rates preview
         self.initRatesPreview();
