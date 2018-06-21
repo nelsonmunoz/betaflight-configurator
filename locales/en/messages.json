@@ -2705,6 +2705,9 @@
     "filterPresetBody": {
         "message": "Content"
     },
+    "filterPresetLoad": {
+        "message": "↓ Load ↓"
+    },
     "pidTuningDTermLowpassFiltersGroup": {
         "message": "D Term Lowpass Filters"
     },    
