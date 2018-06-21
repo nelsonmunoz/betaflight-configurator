@@ -308,12 +308,12 @@ TABS.pid_tuning.initialize = function (callback) {
                     var select_e =
                     $("<option value='{0}'>{0}</option>".format(
                         filename
-                    )).data('data', {'download_url':'https://raw.githubusercontent.com/ultrapresets/ultrapresets/master/betaflight/3.4/'+file.path,'name':filename});
+                    )).data('data', {'download_url':'https://raw.githubusercontent.com/ultrafpv/fpvpresets/master/betaflight/3.4/'+file.path,'name':filename});
                     presets_e.append(select_e);
                 }
             });
         }
-        var presetChecker = new ReleaseChecker('presets', 'https://api.github.com/repos/ultrapresets/ultrapresets/git/trees/031e69de81ecf41ed45c8d23674252faf49cb6fc?recursive=1');
+        var presetChecker = new ReleaseChecker('presets', 'https://api.github.com/repos/ultrafpv/fpvpresets/git/trees/3f646a937b55629268d4cd4a1c3c8d45df4108ba?recursive=1');
         presetChecker.loadReleaseData(populatePresets);
 
         $('input[id="gyroNotch1Enabled"]').change(function() {
@@ -1238,6 +1238,54 @@ TABS.pid_tuning.initialize = function (callback) {
                 });
             }
         })
+
+        $('a.loadPreset').click(function () {
+            var preset = $('div.presetBody .bottomarea')[0].innerText;
+            if (preset){
+                var filterTypeToVal = function (type){
+                    switch (type){
+                        case "PT1":
+                            return 0;
+                        case "BIQUAD":
+                            return 1;
+                        case "FIR":
+                            return 2;
+                    }
+                }
+                var gyro_lowpass_hz = /set gyro_lowpass_hz =(.*)/.exec(preset);
+                if (gyro_lowpass_hz){
+                    $('input[id="gyroLowpassEnabled"]').prop('checked', gyro_lowpass_hz[1].trim() != 0).change();
+                    $('.pid_filter input[name="gyroLowpassFrequency"]').val(gyro_lowpass_hz[1].trim());
+                    var gyro_lowpass_type = /set gyro_lowpass_type =(.*)/.exec(preset);
+                    if(gyro_lowpass_type){
+                        $('.pid_filter select[name="gyroLowpassType"]').val(filterTypeToVal(gyro_lowpass_type[1].trim()));
+                    }
+                }
+                var gyro_lowpass_2_hz = /set gyro_lowpass2_hz =(.*)/.exec(preset);
+                if (gyro_lowpass_2_hz){
+                    $('input[id="gyroLowpass2Enabled"]').prop('checked', gyro_lowpass_2_hz[1].trim() != 0).change();
+                    $('.pid_filter input[name="gyroLowpass2Frequency"]').val(gyro_lowpass_2_hz[1].trim());
+                    var gyro_lowpass_2_type = /set gyro_lowpass_type =(.*)/.exec(preset);
+                    if(gyro_lowpass_2_type){
+                        $('.pid_filter select[name="gyroLowpass2Type"]').val(filterTypeToVal(gyro_lowpass_2_type[1].trim()));
+                    }
+                }
+                var dterm_lowpass_hz = /set dterm_lowpass_hz =(.*)/.exec(preset);
+                if (dterm_lowpass_hz){
+                    $('input[id="dtermLowpassEnabled"]').prop('checked', dterm_lowpass_hz[1].trim() != 0).change();
+                    $('.pid_filter input[name="dtermLowpassFrequency"]').val(dterm_lowpass_hz[1].trim());
+                    var dterm_lowpass_type = /set dterm_lowpass_type =(.*)/.exec(preset);
+                    if(dterm_lowpass_type){
+                        $('.pid_filter select[name="dtermLowpassType"]').val(filterTypeToVal(dterm_lowpass_type[1].trim()));
+                    }
+                    var dterm_lowpass2_hz = /set dterm_lowpass2_hz =(.*)/.exec(preset);
+                    if(dterm_lowpass2_hz){
+                        $('input[id="dtermLowpass2Enabled"]').prop('checked', dterm_lowpass2_hz[1].trim() != 0).change();
+                        $('.pid_filter input[name="dtermLowpass2Frequency"]').val(dterm_lowpass2_hz[1].trim());
+                    }
+                }
+            }
+        });
 
         // Setup model for rates preview
         self.initRatesPreview();
