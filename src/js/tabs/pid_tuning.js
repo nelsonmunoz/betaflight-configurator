@@ -1252,38 +1252,51 @@ TABS.pid_tuning.initialize = function (callback) {
                             return 2;
                     }
                 }
-                var gyro_lowpass_hz = /set gyro_lowpass_hz =(.*)/.exec(preset);
-                if (gyro_lowpass_hz){
-                    $('input[id="gyroLowpassEnabled"]').prop('checked', gyro_lowpass_hz[1].trim() != 0).change();
-                    $('.pid_filter input[name="gyroLowpassFrequency"]').val(gyro_lowpass_hz[1].trim());
-                    var gyro_lowpass_type = /set gyro_lowpass_type =(.*)/.exec(preset);
-                    if(gyro_lowpass_type){
-                        $('.pid_filter select[name="gyroLowpassType"]').val(filterTypeToVal(gyro_lowpass_type[1].trim()));
+                var setControlValue = function (line){
+                    var filterHz;
+                    var filterEnabled;
+                    var filterType;
+                    switch (line.command){
+                        case 'gyro_lowpass_hz':
+                            filterHz = 'gyroLowpassFrequency';
+                            filterEnabled = 'gyroLowpassEnabled';
+                            break;
+                        case 'gyro_lowpass2_hz':
+                            filterHz = 'gyroLowpass2Frequency';
+                            filterEnabled = 'gyroLowpass2Enabled';
+                            break;
+                        case 'dterm_lowpass_hz':
+                            filterHz = 'dtermLowpassFrequency';
+                            filterEnabled = 'dtermLowpassEnabled';
+                            break;
+                        case 'dterm_lowpass2_hz':
+                            filterHz = 'dtermLowpass2Frequency';
+                            filterEnabled = 'dtermLowpass2Enabled';
+                            break;
+                        case 'gyro_lowpass_type':
+                            filterType = 'gyroLowpassType';
+                            break;
+                        case 'gyro_lowpass2_type':
+                            filterType = 'gyroLowpass2Type';
+                            break;
+                        case 'dterm_lowpass_type':
+                            filterType = 'dtermLowpassType';
+                            break;
+                    }
+                    if (filterHz){
+                        $('input[id="'+filterEnabled+'"]').prop('checked', line.value != 0).change();
+                        $('.pid_filter input[name="'+filterHz+'"]').val(line.value);
+                    }
+                    if(filterType){
+                        $('.pid_filter select[name="'+filterType+'"]').val(filterTypeToVal(filterType));
                     }
                 }
-                var gyro_lowpass_2_hz = /set gyro_lowpass2_hz =(.*)/.exec(preset);
-                if (gyro_lowpass_2_hz){
-                    $('input[id="gyroLowpass2Enabled"]').prop('checked', gyro_lowpass_2_hz[1].trim() != 0).change();
-                    $('.pid_filter input[name="gyroLowpass2Frequency"]').val(gyro_lowpass_2_hz[1].trim());
-                    var gyro_lowpass_2_type = /set gyro_lowpass_type =(.*)/.exec(preset);
-                    if(gyro_lowpass_2_type){
-                        $('.pid_filter select[name="gyroLowpass2Type"]').val(filterTypeToVal(gyro_lowpass_2_type[1].trim()));
-                    }
+                var commands = [];
+                var re = new RegExp('^set\\s+(\\S+?)\\s*=\\s*(\\S[^=]*?)$','igm');
+                while ((matchGroups = re.exec(preset)) !== null){
+                    commands.push({'command':matchGroups[1],'value':matchGroups[2]});
                 }
-                var dterm_lowpass_hz = /set dterm_lowpass_hz =(.*)/.exec(preset);
-                if (dterm_lowpass_hz){
-                    $('input[id="dtermLowpassEnabled"]').prop('checked', dterm_lowpass_hz[1].trim() != 0).change();
-                    $('.pid_filter input[name="dtermLowpassFrequency"]').val(dterm_lowpass_hz[1].trim());
-                    var dterm_lowpass_type = /set dterm_lowpass_type =(.*)/.exec(preset);
-                    if(dterm_lowpass_type){
-                        $('.pid_filter select[name="dtermLowpassType"]').val(filterTypeToVal(dterm_lowpass_type[1].trim()));
-                    }
-                    var dterm_lowpass2_hz = /set dterm_lowpass2_hz =(.*)/.exec(preset);
-                    if(dterm_lowpass2_hz){
-                        $('input[id="dtermLowpass2Enabled"]').prop('checked', dterm_lowpass2_hz[1].trim() != 0).change();
-                        $('.pid_filter input[name="dtermLowpass2Frequency"]').val(dterm_lowpass2_hz[1].trim());
-                    }
-                }
+                setControlValue(commands);
             }
         });
 
