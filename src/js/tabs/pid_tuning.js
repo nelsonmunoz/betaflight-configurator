@@ -1252,49 +1252,39 @@ TABS.pid_tuning.initialize = function (callback) {
                             return 2;
                     }
                 }
-                var setControlValue = function (line){
-                    var filterHz;
-                    var filterEnabled;
-                    var filterType;
-                    switch (line.command){
-                        case 'gyro_lowpass_hz':
-                            filterHz = 'gyroLowpassFrequency';
-                            filterEnabled = 'gyroLowpassEnabled';
-                            break;
-                        case 'gyro_lowpass2_hz':
-                            filterHz = 'gyroLowpass2Frequency';
-                            filterEnabled = 'gyroLowpass2Enabled';
-                            break;
-                        case 'dterm_lowpass_hz':
-                            filterHz = 'dtermLowpassFrequency';
-                            filterEnabled = 'dtermLowpassEnabled';
-                            break;
-                        case 'dterm_lowpass2_hz':
-                            filterHz = 'dtermLowpass2Frequency';
-                            filterEnabled = 'dtermLowpass2Enabled';
-                            break;
-                        case 'gyro_lowpass_type':
-                            filterType = 'gyroLowpassType';
-                            break;
-                        case 'gyro_lowpass2_type':
-                            filterType = 'gyroLowpass2Type';
-                            break;
-                        case 'dterm_lowpass_type':
-                            filterType = 'dtermLowpassType';
-                            break;
-                    }
-                    if (filterHz){
-                        $('input[id="'+filterEnabled+'"]').prop('checked', line.value != 0).change();
-                        $('.pid_filter input[name="'+filterHz+'"]').val(line.value);
-                    }
-                    if(filterType){
-                        $('.pid_filter select[name="'+filterType+'"]').val(filterTypeToVal(filterType));
-                    }
+                function camelize(str) {
+                    return str.replace(/-([a-z])|_([a-z])|\s([a-z])/g, function(letter, index) {
+                      return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+                    }).replace(/\s+|-|_/g, '').replace(/Hz$/g,'Frequency');
+                  }
+                var setControlValue = function (lines){
+                    lines.forEach(function (line){
+                        var filterSuffixed = camelize(line.command);
+                        var suffix = line.command.match(/.*\_(.*)$/)[1];
+                        switch (suffix){
+                            case 'type':
+                                $('.pid_filter select[name="'+filterSuffixed+'"]').val(filterTypeToVal(line.value));
+                                break;
+                            default:
+                                var enabled = filterSuffixed.replace('Frequency','Enabled');
+                                $('input[id="'+enabled+'"]').prop('checked', line.value != 0).change();
+                                if(filterSuffixed == 'dtermNotchFrequency'){
+                                    filterSuffixed = 'dTermNotchFrequency';
+                                } else if(filterSuffixed == 'dtermNotchCutoff'){
+                                    filterSuffixed = 'dTermNotchCutoff';
+                                }
+                                $('.pid_filter input[name="'+filterSuffixed+'"]').val(line.value);
+                                console.log(filterSuffixed);
+                                console.log(line.value);
+                                break;
+                        }
+                    })
                 }
+                var matchGroups;
                 var commands = [];
                 var re = new RegExp('^set\\s+(\\S+?)\\s*=\\s*(\\S[^=]*?)$','igm');
                 while ((matchGroups = re.exec(preset)) !== null){
-                    commands.push({'command':matchGroups[1],'value':matchGroups[2]});
+                    commands.push({'command':matchGroups[1],'value':matchGroups[2].trim()});
                 }
                 setControlValue(commands);
             }
