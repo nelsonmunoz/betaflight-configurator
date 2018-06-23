@@ -314,11 +314,25 @@ TABS.pid_tuning.initialize = function (callback) {
                     }
                 });
             } else {
-                var presets_e = $('.profilep select[name="tuningPresets"]').empty();
-                presets_e.append($("<option value='0'>{0}</option>".format('Offline ...')));
+                if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[CONFIG.flightControllerVersion+' presets','Not Found']))){
+                    var presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                    presets_e.append($("<option value='0'>{0}</option>".format('No presets found for '+CONFIG.flightControllerVersion+' ...')));
+                }else {
+                    var presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                    presets_e.append($("<option value='0'>{0}</option>".format('Offline ...')));
+                }
             }
         }
-        var presetChecker = new ReleaseChecker('betaflight presets directory','https://api.github.com/repos/ultrafpv/fpvpresets/contents/betaflight');
+        var firmware;
+        switch (CONFIG.flightControllerIdentifier){
+            case 'BTFL':
+                firmware = 'betaflight';
+                break;
+            default:
+                firmware = CONFIG.flightControllerIdentifier;
+                break;
+        }
+        var presetChecker = new ReleaseChecker(firmware+' presets directory','https://api.github.com/repos/ultrafpv/fpvpresets/contents/'+firmware);
         presetChecker.loadReleaseData(function(directory){
             if(directory){
                 var presetDirsForVersion = [];
@@ -330,8 +344,13 @@ TABS.pid_tuning.initialize = function (callback) {
                 var presetDirTree = new ReleaseChecker(CONFIG.flightControllerVersion+' presets', 'https://api.github.com/repos/ultrafpv/fpvpresets/git/trees/'+presetDirsForVersion[0]+'?recursive=1');
                 presetDirTree.loadReleaseData(populatePresets);
             } else {
-                var presets_e = $('.profilep select[name="tuningPresets"]').empty();
-                presets_e.append($("<option value='0'>{0}</option>".format('Offline ...')));
+                if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[firmware+' presets directory','Not Found']))){
+                    var presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                    presets_e.append($("<option value='0'>{0}</option>".format('No presets found for '+firmware+' ...')));
+                }else {
+                    var presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                    presets_e.append($("<option value='0'>{0}</option>".format('Offline ...')));
+                }
             }
         });
         
