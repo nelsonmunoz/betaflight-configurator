@@ -300,22 +300,41 @@ TABS.pid_tuning.initialize = function (callback) {
         }
 
         function populatePresets(data){
-            var presets_e = $('.profilep select[name="tuningPresets"]').empty();
-            presets_e.append($("<option value='0'>{0}</option>".format('Choose a Preset ...')));
-            data.tree.forEach(function(file){
-                if( file.path.includes("Filters") && file.path.includes(".preset")){
-                    var filename=/(Filters-.*).preset/.exec(file.path)[1];
-                    var select_e =
-                    $("<option value='{0}'>{0}</option>".format(
-                        filename
-                    )).data('data', {'download_url':'https://raw.githubusercontent.com/ultrafpv/fpvpresets/master/betaflight/3.4/'+file.path,'name':filename});
-                    presets_e.append(select_e);
-                }
-            });
+            if (data){
+                var presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                presets_e.append($("<option value='0'>{0}</option>".format('Choose a Preset ...')));
+                data.tree.forEach(function(file){
+                    if( file.path.includes("Filters") && file.path.includes(".preset")){
+                        var filename=/(Filters-.*).preset/.exec(file.path)[1];
+                        var select_e =
+                        $("<option value='{0}'>{0}</option>".format(
+                            filename
+                        )).data('data', {'download_url':'https://raw.githubusercontent.com/ultrafpv/fpvpresets/master/betaflight/'+CONFIG.flightControllerVersion+'/'+file.path,'name':filename});
+                        presets_e.append(select_e);
+                    }
+                });
+            } else {
+                var presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                presets_e.append($("<option value='0'>{0}</option>".format('Offline ...')));
+            }
         }
-        var presetChecker = new ReleaseChecker('presets', 'https://api.github.com/repos/ultrafpv/fpvpresets/git/trees/3f646a937b55629268d4cd4a1c3c8d45df4108ba?recursive=1');
-        presetChecker.loadReleaseData(populatePresets);
-
+        var presetChecker = new ReleaseChecker('betaflight presets directory','https://api.github.com/repos/ultrafpv/fpvpresets/contents/betaflight');
+        presetChecker.loadReleaseData(function(directory){
+            if(directory){
+                var presetDirsForVersion = [];
+                directory.forEach(function(entry){
+                    if(entry.type == "dir" && (entry.name == CONFIG.flightControllerVersion || entry.name == 'Any')){
+                        presetDirsForVersion.push(entry.sha);
+                    }
+                });
+                var presetDirTree = new ReleaseChecker(CONFIG.flightControllerVersion+' presets', 'https://api.github.com/repos/ultrafpv/fpvpresets/git/trees/'+presetDirsForVersion[0]+'?recursive=1');
+                presetDirTree.loadReleaseData(populatePresets);
+            } else {
+                var presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                presets_e.append($("<option value='0'>{0}</option>".format('Offline ...')));
+            }
+        });
+        
         $('input[id="gyroNotch1Enabled"]').change(function() {
             var checked = $(this).is(':checked');
             var hz = FILTER_CONFIG.gyro_notch_hz > 0 ? FILTER_CONFIG.gyro_notch_hz : DEFAULT.gyro_notch_hz;
@@ -1231,6 +1250,13 @@ TABS.pid_tuning.initialize = function (callback) {
                         $('div.presetAuthor .bottomarea').html(/#AUTHOR:(.*)/.exec(rawdata)[1]);
                         $('div.presetDescription .bottomarea').html(/#DESCRIPTION:(.*)/.exec(rawdata)[1]);
                         $('div.presetBody .bottomarea').text(rawdata.replace(/#.*([\n\r|\n|\r])/g,''));
+                        $('div.presetAuthor').show();
+                        $('div.presetDescription').show();
+                        $('div.presetBody').show();
+                    } else {
+                        $('div.presetAuthor .bottomarea').html('Offline ...');
+                        $('div.presetDescription .bottomarea').html('Offline ...');
+                        $('div.presetBody .bottomarea').text('Offline ...');
                         $('div.presetAuthor').show();
                         $('div.presetDescription').show();
                         $('div.presetBody').show();
