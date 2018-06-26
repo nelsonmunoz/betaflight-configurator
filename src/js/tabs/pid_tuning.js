@@ -40,6 +40,8 @@ TABS.pid_tuning.initialize = function (callback) {
         return MSP.promise(MSPCodes.MSP_RC_DEADBAND);
     }).then(function() {
         $('#content').load("./tabs/pid_tuning.html", process_html);
+    }).then(function() {
+        self.fpvPresets = new FpvPresets();
     });
 
     function pid_and_rc_to_form() {
@@ -1333,6 +1335,10 @@ TABS.pid_tuning.initialize = function (callback) {
                 }
                 setControlValue(commands);
             }
+        });
+
+        $('a.signin').click(function(){
+            self.fpvPresets.authenticate();
         });
 
         // Setup model for rates preview

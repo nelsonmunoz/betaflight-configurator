@@ -2708,6 +2708,9 @@
     "filterPresetLoad": {
         "message": "↓ Load ↓"
     },
+    "fpvPresetsCloseBrowser": {
+        "message": "You may close this window now and return to the application."
+    },
     "pidTuningDTermLowpassFiltersGroup": {
         "message": "D Term Lowpass Filters"
     },    
