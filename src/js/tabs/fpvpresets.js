@@ -106,7 +106,6 @@ FpvPresets.prototype.initialize = function (){
       function(data){
         //TODO: refresh tokens based on expiration
         self.tokens = data;
-        console.log(`Tokens: ${self.tokens}`);
         var credential = firebase.auth.GoogleAuthProvider.credential(
           self.tokens.id_token);
           firebase.auth().signInAndRetrieveDataWithCredential(credential).catch(function(error) {

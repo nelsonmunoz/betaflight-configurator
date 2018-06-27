@@ -1274,6 +1274,7 @@ TABS.pid_tuning.initialize = function (callback) {
                         $('div.presetAuthor').show();
                         $('div.presetDescription').show();
                         $('div.presetBody').show();
+                        $('div.presetReviewBox').show();
                     } else {
                         $('div.presetAuthor .bottomarea').html('Offline ...');
                         $('div.presetDescription .bottomarea').html('Offline ...');
@@ -1281,6 +1282,7 @@ TABS.pid_tuning.initialize = function (callback) {
                         $('div.presetAuthor').show();
                         $('div.presetDescription').show();
                         $('div.presetBody').show();
+                        $('div.presetReviewBox').show();
                     }
                 });
             }

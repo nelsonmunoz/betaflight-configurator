@@ -858,3 +858,12 @@ width: 40%;
     margin-left: 5px;
     width: 120px;
 }
+
+.checked {
+    color: orange;
+}
+
+.userReview {
+    margin-top: 7px;
+    margin-bottom: 7px;
+}
