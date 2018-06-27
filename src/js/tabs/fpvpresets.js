@@ -10,13 +10,15 @@ var FpvPresets = function (){
   var self = this;
   self._credentials = require('./FpvPresets_credentials.json');
   self._firebase_config = {
-    apiKey: "AIzaSyCRR_LrqYNwPKlG4NQDQSvhuQ1SLZ_a5KY",
-    authDomain: "fpvpresets.firebaseapp.com",
-    databaseURL: "https://fpvpresets.firebaseio.com",
-    storageBucket: "fpvpresets.appspot.com",
+    apiKey: "AIzaSyDbIw3j6hy-UM5sGFmJG9KA_RF_GG1Ax7g",
+    authDomain: "fpvpresets-test1.firebaseapp.com",
+    databaseURL: "https://fpvpresets-test1.firebaseio.com",
+    projectId: "fpvpresets-test1",
+    storageBucket: "fpvpresets-test1.appspot.com",
+    messagingSenderId: "544264153980"
   };
   self._user_info_request_uri = 'https://www.googleapis.com/oauth2/v3/userinfo';
-  self._query_string_parsed = [];
+  self._querystring_parsed = [];
   self.initialize();
 }
 
@@ -66,7 +68,7 @@ FpvPresets.prototype.initialize = function (){
       return;
     }
     var this_req = querystring.parse(req.url.split('?')[1]);
-    self._query_string_parsed.push(this_req);
+    self._querystring_parsed.push(this_req);
     if('error' in this_req){
       var msg = `Oauth authorization error: ${this_req.error}`;
       GUI.log(msg);
@@ -104,7 +106,20 @@ FpvPresets.prototype.initialize = function (){
       function(data){
         //TODO: refresh tokens based on expiration
         self.tokens = data;
-        self.getProfileInfo(self.tokens.access_token);
+        console.log(`Tokens: ${self.tokens}`);
+        var credential = firebase.auth.GoogleAuthProvider.credential(
+          self.tokens.id_token);
+          firebase.auth().signInAndRetrieveDataWithCredential(credential).catch(function(error) {
+            // Handle Errors here.
+            console.log(`Errors here. ${error.code}`);
+            console.log(error.message);
+            // The email of the user's account used.
+            console.log(`The email of the user's account used.${error.email}`);
+            // The firebase.auth.AuthCredential type that was used.
+            console.log(`The firebase.auth.AuthCredential type that was used.${error.credential}`);
+            // ...
+          });
+        //self.getProfileInfo(self.tokens.access_token);
       }
     ).fail(function(error){
       GUI.log(`Error during token exchange: ${error.responseJSON.error}, ${error.responseJSON.error_description}`);
@@ -131,7 +146,7 @@ FpvPresets.prototype.authenticate = function(){
   var self = this;
   if(self._auth_server){
     if(!self._auth_server.listening){
-      var port = 0;
+      var port = 50000;
       if(self._auth_server.address()){
         port = self._auth_server.address().port;
       }
