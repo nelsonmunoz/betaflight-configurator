@@ -24,6 +24,8 @@ var FpvPresets = function (){
   self._credentials = require('./FpvPresets_credentials.json');
   self._firebase_config = firebase_config;
   self._user_info_request_uri = 'https://www.googleapis.com/oauth2/v3/userinfo';
+  self._redirect_uri = 'localhost';
+  self._redirect_port = '50000';
   self._querystring_parsed = [];
   self.initialize();
 }
@@ -40,14 +42,13 @@ FpvPresets.prototype.initialize = function (){
 
   self._attachOnListening = function(auth_server){
     auth_server.on('listening', function(){
-      self._credentials.installed.redirect_uris.push(`http://${auth_server.address().address}:${auth_server.address().port}`);
       self._state = randomhash.sha256();
       self._code_verifier = randomhash.sha256();
       var code_challenge = hash.sha256(self._code_verifier);
       var code_challenge_method = 'S256';
       var params = querystring.stringify( {
         client_id: self._credentials.installed.client_id,
-        redirect_uri: self._credentials.installed.redirect_uris[self._credentials.installed.redirect_uris.length - 1],
+        redirect_uri: `http://${self._redirect_uri}:${auth_server.address().port}`,
         response_type: 'code',
         scope: 'openid profile',
         state: self._state,
@@ -92,7 +93,7 @@ FpvPresets.prototype.initialize = function (){
       alert(msg);
       return;
     }
-    self._performCodeExchange(this_req.code, self._code_verifier, self._credentials.installed.redirect_uris[1]);
+    self._performCodeExchange(this_req.code, self._code_verifier, `http://${self._redirect_uri}:${self._redirect_port}`);
   }
   
   self._performCodeExchange = function(code, code_verifier, redirect_uri){
@@ -111,18 +112,17 @@ FpvPresets.prototype.initialize = function (){
       function(data){
         //TODO: refresh tokens based on expiration
         self.tokens = data;
-        var credential = firebase.auth.GoogleAuthProvider.credential(
-          self.tokens.id_token);
-          firebase.auth().signInAndRetrieveDataWithCredential(credential).catch(function(error) {
-            // Handle Errors here.
-            console.log(`Errors here. ${error.code}`);
-            console.log(error.message);
-            // The email of the user's account used.
-            console.log(`The email of the user's account used.${error.email}`);
-            // The firebase.auth.AuthCredential type that was used.
-            console.log(`The firebase.auth.AuthCredential type that was used.${error.credential}`);
-            // ...
-          });
+        var credential = firebase.auth.GoogleAuthProvider.credential(self.tokens.id_token);
+        firebase.auth().signInAndRetrieveDataWithCredential(credential).catch(function(error) {
+          // Handle Errors here.
+          console.log(`Errors here. ${error.code}`);
+          console.log(error.message);
+          // The email of the user's account used.
+          console.log(`The email of the user's account used.${error.email}`);
+          // The firebase.auth.AuthCredential type that was used.
+          console.log(`The firebase.auth.AuthCredential type that was used.${error.credential}`);
+          // ...
+        });
       }
     ).fail(function(error){
       GUI.log(`Error during token exchange: ${error.responseJSON.error}, ${error.responseJSON.error_description}`);
@@ -134,11 +134,11 @@ FpvPresets.prototype.authenticate = function(){
   var self = this;
   if(self._auth_server){
     if(!self._auth_server.listening){
-      var port = 50000;
+      var port = self._redirect_port;
       if(self._auth_server.address()){
         port = self._auth_server.address().port;
       }
-      self._auth_server.listen(port,'127.0.0.1');
+      self._auth_server.listen(port,self._redirect_uri);
       //self._attachOnListening(self._auth_server);
     }else {
       GUI.log('Authetication server already listening.');

@@ -353,12 +353,14 @@ TABS.pid_tuning.initialize = function (callback) {
                     }
                     return return_string;
                 };
-                if(firebase.auth().currentUser){
+                try{
                     firebase.database().ref(`/presets/${firmware}/${CONFIG.flightControllerVersion.replace(/\./g,'-')}/`).once('value').then(function(snapshot){
                         $('.profilep select[name="tuningPresets"] option').each(function(index){
                             this.innerHTML=star_string(snapshot.val(),$(this))+' '+this.innerHTML;
                         });
                     });
+                } catch(error){
+                    console.log(error);
                 }
             } else {
                 if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[CONFIG.flightControllerVersion+' presets','Not Found']))){
