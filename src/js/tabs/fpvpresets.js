@@ -6,17 +6,23 @@ var randomhash = require('crypto-toolkit').RandomHash('base64-urlsafe');
 var opn = require('opn');
 var querystring = require("querystring");
 
+var firebase_config = {
+  apiKey: "AIzaSyDbIw3j6hy-UM5sGFmJG9KA_RF_GG1Ax7g",
+  authDomain: "fpvpresets-test1.firebaseapp.com",
+  databaseURL: "https://fpvpresets-test1.firebaseio.com",
+  projectId: "fpvpresets-test1",
+  storageBucket: "fpvpresets-test1.appspot.com",
+  messagingSenderId: "544264153980"
+};
+
+if(firebase.apps.length==0){
+  firebase.initializeApp(firebase_config);
+}
+
 var FpvPresets = function (){
   var self = this;
   self._credentials = require('./FpvPresets_credentials.json');
-  self._firebase_config = {
-    apiKey: "AIzaSyDbIw3j6hy-UM5sGFmJG9KA_RF_GG1Ax7g",
-    authDomain: "fpvpresets-test1.firebaseapp.com",
-    databaseURL: "https://fpvpresets-test1.firebaseio.com",
-    projectId: "fpvpresets-test1",
-    storageBucket: "fpvpresets-test1.appspot.com",
-    messagingSenderId: "544264153980"
-  };
+  self._firebase_config = firebase_config;
   self._user_info_request_uri = 'https://www.googleapis.com/oauth2/v3/userinfo';
   self._querystring_parsed = [];
   self.initialize();
@@ -24,10 +30,6 @@ var FpvPresets = function (){
 
 FpvPresets.prototype.initialize = function (){
   var self = this;
-
-  if(firebase.apps.length==0){
-    firebase.initializeApp(self._firebase_config);
-  }
 
   self._auth_server = http.createServer(function (req, res) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
