@@ -311,10 +311,55 @@ TABS.pid_tuning.initialize = function (callback) {
                         var select_e =
                         $("<option value='{0}'>{0}</option>".format(
                             filename
-                        )).data('data', {'download_url':'https://raw.githubusercontent.com/ultrafpv/fpvpresets/master/betaflight/'+CONFIG.flightControllerVersion+'/'+file.path,'name':filename});
+                        )).data('data', {'download_url':`https://raw.githubusercontent.com/ultrafpv/fpvpresets/master/${firmware}/${CONFIG.flightControllerVersion}/${file.path}`,'name':filename,'file_path':file.path});
                         presets_e.append(select_e);
                     }
                 });
+                //TODO: separate star drawing from data population into option elements
+                var star_string = function(presets,option){
+                    var data = option.data('data');
+                    var return_string = '';
+                    if(presets){
+                        if(data){
+                            if(data.file_path){
+                                var path=data.file_path.split('/');
+                                if(path.length>1){
+                                    var stars_average = 0;
+                                    try {
+                                        //TODO: better tree traversal cases including release candidate-specific presets
+                                        // Only situation expected to have a preset 3 folders deep for Official presets
+                                        var fb_path;
+                                        if(path.length>2 && path[1]=='Official'){
+                                            fb_path=presets[path[0]][path[1]][data.name];
+                                        }else {
+                                            fb_path=presets[path[0]][data.name];
+                                        }
+                                        stars_average = fb_path.stars_average;
+                                        option.data('stars_average',stars_average);
+                                        option.data('reviews',fb_path.reviews);
+                                    } catch(e){
+                                        console.log(`Error getting rating for ${data.name}.`);
+                                    }
+                                    for (var i=0; i<5; i++){
+                                        if(i<stars_average){
+                                            return_string += '&#9733;';
+                                        }else {
+                                            return_string += '&#9734;';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return return_string;
+                };
+                if(firebase.auth().currentUser){
+                    firebase.database().ref(`/presets/${firmware}/${CONFIG.flightControllerVersion.replace(/\./g,'-')}/`).once('value').then(function(snapshot){
+                        $('.profilep select[name="tuningPresets"] option').each(function(index){
+                            this.innerHTML=star_string(snapshot.val(),$(this))+' '+this.innerHTML;
+                        });
+                    });
+                }
             } else {
                 if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[CONFIG.flightControllerVersion+' presets','Not Found']))){
                     var presets_e = $('.profilep select[name="tuningPresets"]').empty();
@@ -1264,7 +1309,7 @@ TABS.pid_tuning.initialize = function (callback) {
         $('select[name="tuningPresets"]').change(function(evt){
             if(evt.target.selectedIndex>0)
             {
-                let data = $("option:selected", evt.target).data("data");
+                var data = $("option:selected", evt.target).data("data");
                 var presetBody = new ReleaseChecker(data['name'], data['download_url']);
                 presetBody.loadReleaseData(function (rawdata){
                     if(rawdata){
@@ -1285,6 +1330,59 @@ TABS.pid_tuning.initialize = function (callback) {
                         $('div.presetReviewBox').show();
                     }
                 });
+                //TODO: handle realtime + offline
+                var average_stars = $("option:selected", evt.target).data("stars_average");
+                var setStars = function(div,stars){
+                    for (var i=0; i<5; i++){
+                        if(i<stars){
+                            if(!$(div.find('span.fa-star')[i]).hasClass('checked')){
+                                $(div.find('span.fa-star')[i]).addClass('checked');
+                            }
+                        }else {
+                            if($(div.find('span.fa-star')[i]).hasClass('checked')){
+                                $(div.find('span.fa-star')[i]).removeClass('checked');
+                            }
+                        }
+                    }
+                    return div;
+                }
+                setStars($('div.presetRating'),average_stars);
+                var review_refs = $("option:selected", evt.target).data("reviews");
+                //TODO: fetch according to scrollbar
+                //use a template for the event
+                //hide based on reporting
+                //CSS
+                $('div.reviewContainer').empty();
+                for (var key in review_refs) {
+                    if(review_refs[key]){
+                        firebase.database().ref(`/reviews/${key}`).once('value').then(function(snapshot){
+                            var stars_div = $('<div/>').html(`<div class="userRating">
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                        </div>`).contents();
+                            stars_div = setStars(stars_div,snapshot.val().stars)[0].outerHTML;
+                            if(snapshot.val().body){
+                                var rts = new Date(snapshot.val().timestamp*1000);
+                                $('div.reviewContainer').append(`<div class="userReview" style="border: 1px solid silver; border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; padding: 3px">
+                                <div class="reviewHeader" style="display: flex; position:relative;">
+                                    ${stars_div}
+                                    <div class="userName" style="margin-left: 15px">${snapshot.val().pilot_handle}</div>
+                                    <div class="reviewdate" style="position:absolute; right:25px">${rts.getFullYear()}/${rts.getMonth()}/${rts.getDate()}</div>
+                                    <div class="flagIcon" style="position:absolute; right:5px">
+                                        <a class="reportReview" href="#">
+                                            <span class="fa fa-exclamation-triangle"></span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="reviewBody" style="padding-top: 7px; padding-bottom: 5px;">${snapshot.val().body}</div>
+                            </div>`);
+                            }
+                        });
+                    }
+                }
             }
         })
 

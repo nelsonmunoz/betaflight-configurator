@@ -24,7 +24,10 @@ var FpvPresets = function (){
 
 FpvPresets.prototype.initialize = function (){
   var self = this;
-  firebase.initializeApp(self._firebase_config);
+
+  if(firebase.apps.length==0){
+    firebase.initializeApp(self._firebase_config);
+  }
 
   self._auth_server = http.createServer(function (req, res) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
@@ -118,26 +121,10 @@ FpvPresets.prototype.initialize = function (){
             console.log(`The firebase.auth.AuthCredential type that was used.${error.credential}`);
             // ...
           });
-        //self.getProfileInfo(self.tokens.access_token);
       }
     ).fail(function(error){
       GUI.log(`Error during token exchange: ${error.responseJSON.error}, ${error.responseJSON.error_description}`);
     });
-  }
-  
-  self.getProfileInfo = function(access_token){
-    var jqXHR = $.ajax({
-      url: self._user_info_request_uri,
-      type: 'GET',
-      headers: {
-        Authorization: `Bearer ${access_token}`
-      },
-      success: function(data){
-        self.profile_info=data;
-      }
-    }).fail(function(error){
-      GUI.log(`Error getting profile info: ${error.responseJSON.error}, ${error.responseJSON.error_description}`);
-    })
   }
 }
 
