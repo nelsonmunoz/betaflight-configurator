@@ -1308,7 +1308,7 @@ TABS.pid_tuning.initialize = function (callback) {
             });
         });
 
-        $('select[name="tuningPresets"]').change(function(evt){
+        $('select[name="tuningPresets"]').change(function(evt){ //TODO: Spinners!
             if(evt.target.selectedIndex>0)
             {
                 var data = $("option:selected", evt.target).data("data");
@@ -1354,19 +1354,23 @@ TABS.pid_tuning.initialize = function (callback) {
                 //use a template for the event
                 //hide based on reporting
                 //CSS
+                var stars_div_body = function(div_name){
+                    return `<div class="${div_name}">
+                    <span class="fa fa-star"></span>
+                    <span class="fa fa-star"></span>
+                    <span class="fa fa-star"></span>
+                    <span class="fa fa-star"></span>
+                    <span class="fa fa-star"></span>
+                </div>`
+                }
                 $('div.reviewContainer').empty();
                 for (var key in review_refs) {
                     if(review_refs[key]){
                         firebase.database().ref(`/reviews/${key}`).once('value').then(function(snapshot){
-                            var stars_div = $('<div/>').html(`<div class="userRating">
-                            <span class="fa fa-star checked"></span>
-                            <span class="fa fa-star checked"></span>
-                            <span class="fa fa-star checked"></span>
-                            <span class="fa fa-star"></span>
-                            <span class="fa fa-star"></span>
-                        </div>`).contents();
-                            stars_div = setStars(stars_div,snapshot.val().stars)[0].outerHTML;
                             if(snapshot.val().body){
+                                //TODO: Separate reviews from ratings in db
+                                var stars_div = $('<div/>').html(stars_div_body('userRating')).contents();
+                                stars_div = setStars(stars_div,snapshot.val().stars)[0].outerHTML;
                                 var rts = new Date(snapshot.val().timestamp*1000);
                                 $('div.reviewContainer').append(`<div class="userReview" style="border: 1px solid silver; border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; padding: 3px">
                                 <div class="reviewHeader" style="display: flex; position:relative;">
@@ -1385,6 +1389,69 @@ TABS.pid_tuning.initialize = function (callback) {
                         });
                     }
                 }
+                if(firebase.auth().currentUser){
+                    firebase.database().ref('/users')
+                        .orderByChild('uid')
+                        .equalTo(
+                            firebase.auth().currentUser.uid
+                        ).once('value')
+                        .then(function(snapshot){
+                            //TODO: check for null results
+                            var user=snapshot.val();
+                            var pilot_handle = Object.keys(user)[0];
+                            var user_reviews = user[pilot_handle].reviews;
+                            if($("option:selected", evt.target).data("reviews")){
+                                var preset_reviews = Object.keys($("option:selected", evt.target).data("reviews"));
+                            } else {
+                                var preset_reviews = [];
+                            }
+                            var user_preset_review = null;
+                            for (const preset_review of preset_reviews) {
+                                if(preset_review in user_reviews){
+                                    user_preset_review = preset_review;
+                                    break;
+                                }
+                            }
+                            $('div.presetReviewBox .submit_btn').empty();
+                            var rating_button_class =  user_preset_review?'updateRating':'newRating'
+                            $('div.presetReviewBox .submit_btn')[0].outerHTML=stars_div_body('btn default_btn submit_btn '+rating_button_class);
+                            $('div.presetReviewBox .submit_btn').prepend(`<span>${user_preset_review?'Update Rating: ':'New Rating: '}</span>`);
+                            var user_rating;
+                            if(user_preset_review){
+                                firebase.database().ref(`/reviews/${user_preset_review}/stars`).once('value').then(function(snapshot){
+                                    user_rating = snapshot.val();
+                                    setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),user_rating);
+                                });
+                            }
+                            //TODO: i18n
+                            $(`div.presetReviewBox .submit_btn.${rating_button_class} span.fa-star`).each(function(index){
+                                $(this).hover(
+                                    function(){
+                                        setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),index+1);
+                                    },
+                                    function(){
+                                        if(user_rating){
+                                            setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),user_rating);
+                                        }else {
+                                            setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),0);
+                                        }
+                                    }
+                                );
+                            });
+                            $('div.presetReviewBox .bottomarea textarea').attr('disabled', false);
+                            $('div.presetReviewBox .bottomarea textarea').prop('placeholder', 'Write your review here. What did you like the most? What did you like the least?');
+                        });
+                } else {
+                    $('div.presetReviewBox .submit_btn').empty();
+                    $('div.presetReviewBox .submit_btn')[0].innerHTML='<a class="signin" href="#">Sign in</a>';
+                    $('a.signin').click(function(){
+                        self.fpvPresets.authenticate();
+                    });
+                    $('div.presetReviewBox .bottomarea textarea').empty();
+                    $('div.presetReviewBox .bottomarea textarea').attr('disabled', true);
+                    $('div.presetReviewBox .bottomarea textarea').prop('placeholder', 'Sign in to Rate and Review.');
+                }
+
             }
         })
 

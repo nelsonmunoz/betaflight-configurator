@@ -127,6 +127,9 @@ FpvPresets.prototype.initialize = function (){
     ).fail(function(error){
       GUI.log(`Error during token exchange: ${error.responseJSON.error}, ${error.responseJSON.error_description}`);
     });
+    firebase.auth().onAuthStateChanged(function(){
+      $('select[name="tuningPresets"]').trigger('change');
+    });
   }
 }
 
