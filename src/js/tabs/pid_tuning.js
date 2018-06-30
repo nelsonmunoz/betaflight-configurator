@@ -1415,7 +1415,7 @@ TABS.pid_tuning.initialize = function (callback) {
                             $('div.presetReviewBox .submit_btn').empty();
                             var rating_button_class =  user_preset_review?'updateRating':'newRating'
                             $('div.presetReviewBox .submit_btn')[0].outerHTML=stars_div_body('btn default_btn submit_btn '+rating_button_class);
-                            $('div.presetReviewBox .submit_btn').prepend(`<span>${user_preset_review?'Update Rating: ':'New Rating: '}</span>`);
+                            $('div.presetReviewBox .submit_btn').prepend(`<span>${user_preset_review?'Update Rating: ':'Submit Rating: '}</span>`);
                             var user_rating;
                             if(user_preset_review){
                                 firebase.database().ref(`/reviews/${user_preset_review}/stars`).once('value').then(function(snapshot){
