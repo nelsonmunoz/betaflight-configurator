@@ -315,53 +315,48 @@ TABS.pid_tuning.initialize = function (callback) {
                         presets_e.append(select_e);
                     }
                 });
-                //TODO: separate star drawing from data population into option elements
-                var star_string = function(presets,option){
+                var populateOptionData = function(preset,option){
                     var data = option.data('data');
+                    try {
+                        option.data('stars_average',preset[Object.keys(preset)[0]].stars_average);
+                        option.data('reviews',preset[Object.keys(preset)[0]].reviews);
+                        return true;
+                    } catch (error){
+                        console.log(`Error retrieving info for ${data.file_path}.`);
+                        console.log(error);
+                    }
+                }
+                var star_string = function(stars_average){
                     var return_string = '';
-                    if(presets){
-                        if(data){
-                            if(data.file_path){
-                                var path=data.file_path.split('/');
-                                if(path.length>1){
-                                    var stars_average = 0;
-                                    try {
-                                        //TODO: better tree traversal cases including release candidate-specific presets
-                                        // Only situation expected to have a preset 3 folders deep for Official presets
-                                        var fb_path;
-                                        if(path.length>2 && path[1]=='Official'){
-                                            fb_path=presets[path[0]][path[1]][data.name];
-                                        }else {
-                                            fb_path=presets[path[0]][data.name];
-                                        }
-                                        stars_average = fb_path.stars_average;
-                                        option.data('stars_average',stars_average);
-                                        option.data('reviews',fb_path.reviews);
-                                    } catch(e){
-                                        console.log(`Error getting rating for ${data.name}.`);
-                                    }
-                                    for (var i=0; i<5; i++){
-                                        if(i<stars_average){
-                                            return_string += '&#9733;';
-                                        }else {
-                                            return_string += '&#9734;';
-                                        }
-                                    }
-                                }
-                            }
+                    for (var i=0; i<5; i++){
+                        if(i<stars_average){
+                            return_string += '&#9733;';
+                        }else {
+                            return_string += '&#9734;';
                         }
                     }
                     return return_string;
-                };
-                try{
-                    firebase.database().ref(`/presets/${firmware}/${CONFIG.flightControllerVersion.replace(/\./g,'-')}/`).once('value').then(function(snapshot){
-                        $('.profilep select[name="tuningPresets"] option').each(function(index){
-                            this.innerHTML=star_string(snapshot.val(),$(this))+' '+this.innerHTML;
-                        });
-                    });
-                } catch(error){
-                    console.log(error);
                 }
+                $('.profilep select[name="tuningPresets"] option').each(function(index){
+                    if(index>0){
+                        var option = $(this);
+                        if($(this).data('data').file_path){
+                            firebase.database().ref(`/presets`)
+                                .orderByChild('path')
+                                .equalTo(`${firmware}/${CONFIG.flightControllerVersion}/${option.data('data').file_path}`)
+                                .once('value')
+                                .then(function(snapshot){
+                                    if(snapshot.val()){
+                                        if(populateOptionData(snapshot.val(),option)){
+                                            option.html(star_string(option.data('stars_average'))+' '+option.html());
+                                        }
+                                    }else {
+                                        option.html(star_string(0)+' '+option.html());
+                                    }
+                            });
+                        }
+                    }
+                });
             } else {
                 if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[CONFIG.flightControllerVersion+' presets','Not Found']))){
                     var presets_e = $('.profilep select[name="tuningPresets"]').empty();
