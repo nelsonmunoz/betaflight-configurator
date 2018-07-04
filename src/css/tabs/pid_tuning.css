@@ -908,4 +908,7 @@ width: 40%;
 
 .submit_btn .fa.fa-star{
     padding: 5px 0px 5px 0px;
+    cursor: pointer;
+    transition: all ease 0.2s;
+    transition-delay: 0.2s;
 }

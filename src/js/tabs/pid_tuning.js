@@ -320,6 +320,7 @@ TABS.pid_tuning.initialize = function (callback) {
                     try {
                         option.data('stars_average',preset[Object.keys(preset)[0]].stars_average);
                         option.data('reviews',preset[Object.keys(preset)[0]].reviews);
+                        option.data('preset_uid',Object.keys(preset)[0]);
                         return true;
                     } catch (error){
                         console.log(`Error retrieving info for ${data.file_path}.`);
@@ -1360,7 +1361,7 @@ TABS.pid_tuning.initialize = function (callback) {
                 }
                 $('div.reviewContainer').empty();
                 for (var key in review_refs) {
-                    if(review_refs[key]){
+                    if(review_refs[key]&&key!='empty'){
                         firebase.database().ref(`/reviews/${key}`).once('value').then(function(snapshot){
                             if(snapshot.val().body){
                                 //TODO: Separate reviews from ratings in db
@@ -1390,6 +1391,7 @@ TABS.pid_tuning.initialize = function (callback) {
                         .then(function(snapshot){
                             //TODO: check for null results
                             var user_reviews = snapshot.val().reviews;
+                            $('textarea.reviewText').data('pilot_handle',snapshot.val().pilot_handle);
                             if($("option:selected", evt.target).data("reviews")){
                                 var preset_reviews = Object.keys($("option:selected", evt.target).data("reviews"));
                             } else {
@@ -1427,6 +1429,91 @@ TABS.pid_tuning.initialize = function (callback) {
                                         }
                                     }
                                 );
+                                $(this).click(function(){
+                                    $('textarea.reviewText').prop('disabled',true);
+                                    var rating=0;
+                                    $(`div.presetReviewBox .submit_btn.${rating_button_class} span.fa-star`).each(function(index){
+                                        if($(this).hasClass('checked')){
+                                            rating++;
+                                        }
+                                    });
+                                    $('div.presetReviewBox .submit_btn').empty();
+                                    $('div.presetReviewBox .submit_btn')[0].outerHTML=stars_div_body('btn default_btn submit_btn '+rating_button_class);
+                                    $('div.presetReviewBox .submit_btn').prepend('<span>Submiting...</span>');
+                                    setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),rating);
+                                    if(!$('textarea.reviewText').text()){
+                                        //TODO: i18n
+                                        if(confirm('Submit rating without review?')){
+                                            var firmware;
+                                            switch (CONFIG.flightControllerIdentifier){
+                                                case 'BTFL':
+                                                    firmware = 'betaflight';
+                                                    break;
+                                                default:
+                                                    firmware = CONFIG.flightControllerIdentifier;
+                                                    break;
+                                            }
+                                            var path=`${firmware}/${CONFIG.flightControllerVersion}/${$('select[name="tuningPresets"] option:selected').data('data').file_path}`;
+                                            var new_review_key=firebase.database().ref('/reviews').push().key;
+                                            firebase.database().ref('/reviews/'+new_review_key)
+                                                .set({
+                                                    'body':false,
+                                                    'pilot_handle': $('textarea.reviewText').data('pilot_handle'),
+                                                    'preset':path,
+                                                    'reported':0,
+                                                    'stars':rating,
+                                                    'timestamp':Math.round((new Date()).getTime() / 1000)
+                                                })
+                                                .then(function(){ //TODO: functionalize repeating code
+                                                    firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}`)
+                                                    .once('value')
+                                                    .then(function(snapshot){
+                                                        console.log(snapshot);
+                                                        var preset_reviews=snapshot.val().reviews;
+                                                        if('empty' in preset_reviews){
+                                                            preset_reviews={};
+                                                        }
+                                                        preset_reviews[new_review_key]=true;
+                                                        firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}/reviews`)
+                                                        .set(preset_reviews) //Reference review from preset
+                                                        .then(function(){
+                                                            firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`)
+                                                            .once('value')
+                                                            .then(function(preset_reviews_sn){
+                                                                var user_reviews=preset_reviews_sn.val();
+                                                                user_reviews[new_review_key]=true;
+                                                                firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`)
+                                                                .set(user_reviews) //Reference review from users
+                                                                .then(function(){
+                                                                    $('select[name="tuningPresets"]').change();
+                                                                })
+                                                                .catch(function(error){
+                                                                    console.log('Error setting user review', error.message)
+                                                                });
+                                                            })
+                                                            .catch(function(error){
+                                                                console.log('Error getting user reviews', error.message)
+                                                            });
+                                                        })
+                                                        .catch(function(error){
+                                                            console.log('Error setting preset review', error.message)
+                                                        });
+                                                    })
+                                                    .catch(function(error){
+                                                        console.log('Error getting preset data', error.message);
+                                                    });
+                                                })
+                                                .catch(function(error){
+                                                    console.log('Error setting review data', error.message);
+                                                });
+                                        } else {
+                                            $('select[name="tuningPresets"]').change();
+                                            return;
+                                        }
+                                    } else {
+                                        console.log('submit both review and rating!');
+                                    }
+                                });
                             });
                             $('div.presetReviewBox .bottomarea textarea').attr('disabled', false);
                             $('div.presetReviewBox .bottomarea textarea').prop('placeholder', 'Write your review here. What did you like the most? What did you like the least?');
@@ -1443,7 +1530,6 @@ TABS.pid_tuning.initialize = function (callback) {
                     $('div.presetReviewBox .bottomarea textarea').attr('disabled', true);
                     $('div.presetReviewBox .bottomarea textarea').prop('placeholder', 'Sign in to Rate and Review.');
                 }
-
             }
         })
 
