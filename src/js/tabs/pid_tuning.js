@@ -1385,16 +1385,11 @@ TABS.pid_tuning.initialize = function (callback) {
                     }
                 }
                 if(firebase.auth().currentUser){
-                    firebase.database().ref('/users')
-                        .orderByChild('uid')
-                        .equalTo(
-                            firebase.auth().currentUser.uid
-                        ).once('value')
+                    firebase.database().ref('/users/'+firebase.auth().currentUser.uid)
+                        .once('value')
                         .then(function(snapshot){
                             //TODO: check for null results
-                            var user=snapshot.val();
-                            var pilot_handle = Object.keys(user)[0];
-                            var user_reviews = user[pilot_handle].reviews;
+                            var user_reviews = snapshot.val().reviews;
                             if($("option:selected", evt.target).data("reviews")){
                                 var preset_reviews = Object.keys($("option:selected", evt.target).data("reviews"));
                             } else {
@@ -1435,6 +1430,8 @@ TABS.pid_tuning.initialize = function (callback) {
                             });
                             $('div.presetReviewBox .bottomarea textarea').attr('disabled', false);
                             $('div.presetReviewBox .bottomarea textarea').prop('placeholder', 'Write your review here. What did you like the most? What did you like the least?');
+                        },function(error){
+                            console.log(error);
                         });
                 } else {
                     $('div.presetReviewBox .submit_btn').empty();
