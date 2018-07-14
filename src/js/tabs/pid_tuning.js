@@ -299,8 +299,6 @@ TABS.pid_tuning.initialize = function (callback) {
             $('.dtermLowpass2').hide();
         }
 
-        
-        
         $('input[id="gyroNotch1Enabled"]').change(function() {
             var checked = $(this).is(':checked');
             var hz = FILTER_CONFIG.gyro_notch_hz > 0 ? FILTER_CONFIG.gyro_notch_hz : DEFAULT.gyro_notch_hz;
