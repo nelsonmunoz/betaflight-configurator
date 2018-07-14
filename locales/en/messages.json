@@ -2693,27 +2693,6 @@
     "pidTuningFilterSettings": {
         "message": "Profile dependent Filter Settings"
     },
-    "pidTuningPresets": {
-        "message": "Filter Presets"
-    },
-    "filterPresetOptionLoading": {
-        "message": "Loading ..."
-    },
-    "filterPresetAuthor": {
-        "message": "Author"
-    },
-    "filterPresetDescription": {
-        "message": "Description"
-    },
-    "filterPresetBody": {
-        "message": "Content"
-    },
-    "filterPresetLoad": {
-        "message": "Load"
-    },
-    "fpvPresetsCloseBrowser": {
-        "message": "You may close this window now and return to the application."
-    },
     "pidTuningDTermLowpassFiltersGroup": {
         "message": "D Term Lowpass Filters"
     },    
