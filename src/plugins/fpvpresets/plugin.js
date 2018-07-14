@@ -1,9 +1,9 @@
 'use strict';
-var firebase = require("firebase");
+var firebase = require("./plugins/fpvpresets/node_modules/firebase/index.node.js");
+var hash = require('./plugins/fpvpresets/node_modules/crypto-toolkit/crypto-toolkit.js').Hash('base64-urlsafe');
+var randomhash = require('./plugins/fpvpresets/node_modules/crypto-toolkit/crypto-toolkit.js').RandomHash('base64-urlsafe');
+var opn = require('./plugins/fpvpresets/node_modules/opn/index.js');
 var http = require('http');
-var hash = require('crypto-toolkit').Hash('base64-urlsafe');
-var randomhash = require('crypto-toolkit').RandomHash('base64-urlsafe');
-var opn = require('opn');
 var querystring = require("querystring");
 
 var firebase_config = {
