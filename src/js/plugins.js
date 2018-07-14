@@ -25,5 +25,5 @@ for (var plugin_js of plugin_files){
     var script = document.createElement('script');
     script.type = 'text/javascript';
     script.src=plugin_js;
-    document.getElementsByTagName('head')[0].appendChild(script);
+    $('head').append(script);
 }

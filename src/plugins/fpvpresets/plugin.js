@@ -21,7 +21,7 @@ if(firebase.apps.length==0){
 
 var FpvPresets = function (){
     var self = this;
-    self._credentials = require('./FpvPresets_credentials.json');
+    self._credentials = require('./plugins/fpvpresets/FpvPresets_credentials.json');
     self._firebase_config = firebase_config;
     self._user_info_request_uri = 'https://www.googleapis.com/oauth2/v3/userinfo';
     self._redirect_uri = 'localhost';
@@ -34,6 +34,7 @@ var FpvPresets = function (){
 FpvPresets.prototype.initialize = function (){
     var self = this;
     i18n.addResources(self.i18n_en);
+    $('head').append('<link rel="stylesheet" type="text/css" href="./plugins/fpvpresets/css/fpvpresets.css">');
     self._auth_server = http.createServer(function (req, res) {
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.write(i18n.getMessage('fpvPresetsCloseBrowser'));
