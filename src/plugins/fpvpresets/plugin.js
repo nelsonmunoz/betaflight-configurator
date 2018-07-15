@@ -19,6 +19,14 @@ if(firebase.apps.length==0){
     firebase.initializeApp(firebase_config);
 }
 
+var sanitize = function(input){
+	var output = input.replace(/<script[^>]*?>.*?<\/script>/gi, '').
+					replace(/<[\/\!]*?[^<>]*?>/gi, '').
+					replace(/<style[^>]*?>.*?<\/style>/gi, '').
+					replace(/<![\s\S]*?--[ \t\n\r]*>/gi, '');
+	return output;
+}
+
 var FpvPresets = function (){
     var self = this;
     self._credentials = require('./plugins/fpvpresets/FpvPresets_credentials.json');
@@ -28,6 +36,17 @@ var FpvPresets = function (){
     self._redirect_port = '50000'; //TODO: search for random free port
     self._querystring_parsed = [];
     self.i18n_en=require('./plugins/fpvpresets/_locales/en/messages.json');
+    switch (CONFIG.flightControllerIdentifier){
+        case 'BTFL':
+            self._firmware = 'betaflight';
+            break;
+        case 'BTTR':
+            self._firmware = 'butterflight';
+            break;
+        default:
+            self._firmware = CONFIG.flightControllerIdentifier;
+            break;
+    }
     self.initialize();
 }
 
@@ -115,22 +134,22 @@ FpvPresets.prototype.initialize = function (){
             //TODO: refresh tokens based on expiration
             self.tokens = data;
             var credential = firebase.auth.GoogleAuthProvider.credential(self.tokens.id_token);
-            firebase.auth().signInAndRetrieveDataWithCredential(credential).catch(function(error) {
-            // Handle Errors here.
-            console.log(`Errors here. ${error.code}`);
-            console.log(error.message);
-            // The email of the user's account used.
-            console.log(`The email of the user's account used.${error.email}`);
-            // The firebase.auth.AuthCredential type that was used.
-            console.log(`The firebase.auth.AuthCredential type that was used.${error.credential}`);
-            // ...
+            firebase.auth().signInAndRetrieveDataWithCredential(credential).catch(error => {
+                // Handle Errors here.
+                console.log(`Errors here. ${error.code}`);
+                console.log(error.message);
+                // The email of the user's account used.
+                console.log(`The email of the user's account used.${error.email}`);
+                // The firebase.auth.AuthCredential type that was used.
+                console.log(`The firebase.auth.AuthCredential type that was used.${error.credential}`);
+                // ...
             });
         }
-        ).fail(function(error){
-        GUI.log(`Error during token exchange: ${error.responseJSON.error}, ${error.responseJSON.error_description}`);
+        ).fail(error => {
+            GUI.log(`Error during token exchange: ${error.responseJSON.error}, ${error.responseJSON.error_description}`);
         });
-        firebase.auth().onAuthStateChanged(function(){
-        $('select[name="tuningPresets"]').trigger('change');
+        firebase.auth().onAuthStateChanged(() => {
+            $('select[name="tuningPresets"]').trigger('change');
         });
     }
 }
@@ -156,6 +175,7 @@ FpvPresets.prototype.authenticate = function(){
 }
 
 FpvPresets.prototype.process_html = function(){
+    var self = this;
     $.get('./plugins/fpvpresets/html/filter_presets.html', function(html){
         $('div.subtab-filter div.note.topspacer').after(html);
         i18n.localizePage();
@@ -163,13 +183,13 @@ FpvPresets.prototype.process_html = function(){
             if (data){
                 var presets_e = $('.profilep select[name="tuningPresets"]').empty();
                 presets_e.append($("<option value='0'>{0}</option>".format('Choose a Preset ...')));
-                data.tree.forEach(function(file){
+                data.tree.forEach(file => {
                     if( file.path.includes("Filters") && file.path.includes(".preset")){
                         var filename=/(Filters-.*).preset/.exec(file.path)[1];
                         var select_e =
                         $("<option value='{0}'>{0}</option>".format(
                             filename
-                        )).data('data', {'download_url':`https://raw.githubusercontent.com/ultrafpv/fpvpresets/master/${firmware}/${CONFIG.flightControllerVersion}/${file.path}`,'name':filename,'file_path':file.path});
+                        )).data('data', {'download_url':`https://raw.githubusercontent.com/ultrafpv/fpvpresets/master/${self._firmware}/${CONFIG.flightControllerVersion}/${file.path}`,'name':filename,'file_path':file.path});
                         presets_e.append(select_e);
                     }
                 });
@@ -202,11 +222,11 @@ FpvPresets.prototype.process_html = function(){
                         if($(this).data('data').file_path){
                             firebase.database().ref(`/presets`)
                                 .orderByChild('path')
-                                .equalTo(`${firmware}/${CONFIG.flightControllerVersion}/${option.data('data').file_path}`)
+                                .equalTo(`${self._firmware}/${CONFIG.flightControllerVersion}/${option.data('data').file_path}`)
                                 .once('value')
-                                .then(function(snapshot){
-                                    if(snapshot.val()){
-                                        if(populateOptionData(snapshot.val(),option)){
+                                .then(preset_ss => {
+                                    if(preset_ss.val()){
+                                        if(populateOptionData(preset_ss.val(),option)){
                                             option.html(star_string(option.data('stars_average'))+' '+option.html());
                                         }
                                     }else {
@@ -226,20 +246,11 @@ FpvPresets.prototype.process_html = function(){
                 }
             }
         }
-        var firmware;
-        switch (CONFIG.flightControllerIdentifier){
-            case 'BTFL':
-                firmware = 'betaflight';
-                break;
-            default:
-                firmware = CONFIG.flightControllerIdentifier;
-                break;
-        }
-        var presetChecker = new ReleaseChecker(firmware+' presets directory','https://api.github.com/repos/ultrafpv/fpvpresets/contents/'+firmware);
-        presetChecker.loadReleaseData(function(directory){
+        var presetChecker = new ReleaseChecker(self._firmware+' presets directory','https://api.github.com/repos/ultrafpv/fpvpresets/contents/'+self._firmware);
+        presetChecker.loadReleaseData(directory => {
             if(directory){
                 var presetDirsForVersion = [];
-                directory.forEach(function(entry){
+                directory.forEach( entry => {
                     if(entry.type == "dir" && (entry.name == CONFIG.flightControllerVersion || entry.name == 'Any')){
                         presetDirsForVersion.push(entry.sha);
                     }
@@ -247,9 +258,9 @@ FpvPresets.prototype.process_html = function(){
                 var presetDirTree = new ReleaseChecker(CONFIG.flightControllerVersion+' presets', 'https://api.github.com/repos/ultrafpv/fpvpresets/git/trees/'+presetDirsForVersion[0]+'?recursive=1');
                 presetDirTree.loadReleaseData(populatePresets);
             } else {
-                if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[firmware+' presets directory','Not Found']))){
+                if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[self._firmware+' presets directory','Not Found']))){
                     var presets_e = $('.profilep select[name="tuningPresets"]').empty();
-                    presets_e.append($("<option value='0'>{0}</option>".format('No presets found for '+firmware+' ...')));
+                    presets_e.append($("<option value='0'>{0}</option>".format('No presets found for '+self._firmware+' ...')));
                 }else {
                     var presets_e = $('.profilep select[name="tuningPresets"]').empty();
                     presets_e.append($("<option value='0'>{0}</option>".format('Offline ...')));
@@ -258,7 +269,7 @@ FpvPresets.prototype.process_html = function(){
         });
 
         // Event Handlers
-        $('select[name="tuningPresets"]').change(function(evt){ //TODO: Spinners!
+        $('select[name="tuningPresets"]').change(evt => { //TODO: Spinners!
             if(evt.target.selectedIndex>0)
             {
                 var data = $("option:selected", evt.target).data("data");
@@ -267,7 +278,7 @@ FpvPresets.prototype.process_html = function(){
                     if(rawdata){
                         $('div.presetAuthor .bottomarea').html(/#AUTHOR:(.*)/.exec(rawdata)[1]);
                         $('div.presetDescription .bottomarea').html(/#DESCRIPTION:(.*)/.exec(rawdata)[1]);
-                        $('div.presetBody .bottomarea').text(rawdata.replace(/#.*([\n\r|\n|\r])/g,''));
+                        $('div.presetBody .bottomarea').text(sanitize(rawdata.replace(/#.*([\n\r|\n|\r])/g,'')));
                         $('div.presetAuthor').show();
                         $('div.presetDescription').show();
                         $('div.presetBody').show();
@@ -316,16 +327,16 @@ FpvPresets.prototype.process_html = function(){
                 $('div.reviewContainer').empty();
                 for (var key in review_refs) {
                     if(review_refs[key]&&key!='empty'){
-                        firebase.database().ref(`/reviews/${key}`).once('value').then(function(snapshot){
-                            if(snapshot.val().body){
+                        firebase.database().ref(`/reviews/${key}`).once('value').then(review_ss => {
+                            if(review_ss.val().body){
                                 //TODO: Separate reviews from ratings in db
                                 var stars_div = $('<div/>').html(stars_div_body('userRating')).contents();
-                                stars_div = setStars(stars_div,snapshot.val().stars)[0].outerHTML;
-                                var rts = new Date(snapshot.val().timestamp*1000);
+                                stars_div = setStars(stars_div,review_ss.val().stars)[0].outerHTML;
+                                var rts = new Date(review_ss.val().timestamp*1000);
                                 $('div.reviewContainer').append(`<div class="userReview" style="border: 1px solid silver; border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; padding: 3px">
                                 <div class="reviewHeader" style="display: flex; position:relative;">
                                     ${stars_div}
-                                    <div class="userName" style="margin-left: 15px">${snapshot.val().pilot_handle}</div>
+                                    <div class="userName" style="margin-left: 15px">${sanitize(review_ss.val().pilot_handle)}</div>
                                     <div class="reviewdate" style="position:absolute; right:25px">${rts.getFullYear()}/${rts.getMonth()}/${rts.getDate()}</div>
                                     <div class="flagIcon" style="position:absolute; right:5px">
                                         <a class="reportReview" href="#">
@@ -333,7 +344,7 @@ FpvPresets.prototype.process_html = function(){
                                         </a>
                                     </div>
                                 </div>
-                                <div class="reviewBody" style="padding-top: 7px; padding-bottom: 5px;">${snapshot.val().body}</div>
+                                <div class="reviewBody" style="padding-top: 7px; padding-bottom: 5px;">${sanitize(review_ss.val().body)}</div>
                             </div>`);
                             }
                         });
@@ -342,10 +353,11 @@ FpvPresets.prototype.process_html = function(){
                 if(firebase.auth().currentUser){
                     firebase.database().ref('/users/'+firebase.auth().currentUser.uid)
                         .once('value')
-                        .then(function(snapshot){
+                        .then(user_ss => {
                             //TODO: check for null results
-                            var user_reviews = snapshot.val().reviews;
-                            $('textarea.reviewText').data('pilot_handle',snapshot.val().pilot_handle);
+                            var user_reviews = user_ss.val().reviews;
+                            $('textarea.reviewText').data('pilot_handle',user_ss.val().pilot_handle);
+                            // Check against preset file existing in github without entry in firebase
                             if($("option:selected", evt.target).data("reviews")){
                                 var preset_reviews = Object.keys($("option:selected", evt.target).data("reviews"));
                             } else {
@@ -364,18 +376,18 @@ FpvPresets.prototype.process_html = function(){
                             $('div.presetReviewBox .submit_btn').prepend(`<span>${user_preset_review?'Update Rating: ':'Submit Rating: '}</span>`);
                             var user_rating;
                             if(user_preset_review){
-                                firebase.database().ref(`/reviews/${user_preset_review}/stars`).once('value').then(function(snapshot){
-                                    user_rating = snapshot.val();
+                                firebase.database().ref(`/reviews/${user_preset_review}/stars`).once('value').then(stars_ss => {
+                                    user_rating = stars_ss.val();
                                     setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),user_rating);
                                 });
                             }
                             //TODO: i18n
                             $(`div.presetReviewBox .submit_btn.${rating_button_class} span.fa-star`).each(function(index){
                                 $(this).hover(
-                                    function(){
+                                    ()=>{
                                         setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),index+1);
                                     },
-                                    function(){
+                                    ()=>{
                                         if(user_rating){
                                             setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),user_rating);
                                         }else {
@@ -383,7 +395,18 @@ FpvPresets.prototype.process_html = function(){
                                         }
                                     }
                                 );
-                                $(this).click(function(){
+                                $(this).click(() => {
+                                    //TODO: i18n
+                                    var body = false;
+                                    if(!$('textarea.reviewText').val()){
+                                        if(!confirm('Submit rating without review?')){
+                                            $('select[name="tuningPresets"]').change();
+                                            return;
+                                        }
+                                    } else {
+                                        body = sanitize($('textarea.reviewText').val());
+                                        console.log('submit both review and rating!');
+                                    }
                                     $('textarea.reviewText').prop('disabled',true);
                                     var rating=0;
                                     $(`div.presetReviewBox .submit_btn.${rating_button_class} span.fa-star`).each(function(index){
@@ -395,78 +418,42 @@ FpvPresets.prototype.process_html = function(){
                                     $('div.presetReviewBox .submit_btn')[0].outerHTML=stars_div_body('btn default_btn submit_btn '+rating_button_class);
                                     $('div.presetReviewBox .submit_btn').prepend('<span>Submiting...</span>');
                                     setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),rating);
-                                    if(!$('textarea.reviewText').text()){
-                                        //TODO: i18n
-                                        if(confirm('Submit rating without review?')){
-                                            var firmware;
-                                            switch (CONFIG.flightControllerIdentifier){
-                                                case 'BTFL':
-                                                    firmware = 'betaflight';
-                                                    break;
-                                                default:
-                                                    firmware = CONFIG.flightControllerIdentifier;
-                                                    break;
-                                            }
-                                            var path=`${firmware}/${CONFIG.flightControllerVersion}/${$('select[name="tuningPresets"] option:selected').data('data').file_path}`;
-                                            var new_review_key=firebase.database().ref('/reviews').push().key;
-                                            firebase.database().ref('/reviews/'+new_review_key)
-                                                .set({
-                                                    'body':false,
-                                                    'pilot_handle': $('textarea.reviewText').data('pilot_handle'),
-                                                    'preset':path,
-                                                    'reported':0,
-                                                    'stars':rating,
-                                                    'timestamp':Math.round((new Date()).getTime() / 1000)
-                                                })
-                                                .then(function(){ //TODO: functionalize repeating code
-                                                    firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}`)
-                                                    .once('value')
-                                                    .then(function(snapshot){
-                                                        console.log(snapshot);
-                                                        var preset_reviews=snapshot.val().reviews;
-                                                        if('empty' in preset_reviews){
-                                                            preset_reviews={};
-                                                        }
-                                                        preset_reviews[new_review_key]=true;
-                                                        firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}/reviews`)
-                                                        .set(preset_reviews) //Reference review from preset
-                                                        .then(function(){
-                                                            firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`)
-                                                            .once('value')
-                                                            .then(function(preset_reviews_sn){
-                                                                var user_reviews=preset_reviews_sn.val();
-                                                                user_reviews[new_review_key]=true;
-                                                                firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`)
-                                                                .set(user_reviews) //Reference review from users
-                                                                .then(function(){
-                                                                    $('select[name="tuningPresets"]').change();
-                                                                })
-                                                                .catch(function(error){
-                                                                    console.log('Error setting user review', error.message)
-                                                                });
-                                                            })
-                                                            .catch(function(error){
-                                                                console.log('Error getting user reviews', error.message)
-                                                            });
-                                                        })
-                                                        .catch(function(error){
-                                                            console.log('Error setting preset review', error.message)
-                                                        });
-                                                    })
-                                                    .catch(function(error){
-                                                        console.log('Error getting preset data', error.message);
-                                                    });
-                                                })
-                                                .catch(function(error){
-                                                    console.log('Error setting review data', error.message);
-                                                });
-                                        } else {
-                                            $('select[name="tuningPresets"]').change();
-                                            return;
+                                    var path=`${self._firmware}/${CONFIG.flightControllerVersion}/${$('select[name="tuningPresets"] option:selected').data('data').file_path}`;
+                                    var new_review_key=firebase.database().ref('/reviews').push().key;
+                                    firebase.database().ref('/reviews/'+new_review_key)
+                                    .set({
+                                        'body':body,
+                                        'pilot_handle': $('textarea.reviewText').data('pilot_handle'),
+                                        'preset':path,
+                                        'reported':0,
+                                        'stars':rating,
+                                        'timestamp':Math.round((new Date()).getTime() / 1000)
+                                    })
+                                    .then(() => {
+                                        return firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}`).once('value')
+                                    })
+                                    .then(preset_ss => {
+                                        var preset_reviews=preset_ss.val().reviews;
+                                        if('empty' in preset_reviews){
+                                            preset_reviews={};
                                         }
-                                    } else {
-                                        console.log('submit both review and rating!');
-                                    }
+                                        preset_reviews[new_review_key]=true;
+                                        return firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}/reviews`).set(preset_reviews) //Reference review from preset
+                                    })
+                                    .then(() => {
+                                        return firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`).once('value')
+                                    })
+                                    .then(preset_reviews_sn => {
+                                        var user_reviews=preset_reviews_sn.val();
+                                        user_reviews[new_review_key]=true;
+                                        return firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`).set(user_reviews) //Reference review from users
+                                    })
+                                    .then(() => {
+                                        return $('select[name="tuningPresets"]').change();
+                                    })
+                                    .catch(error=>{
+                                        console.log('Error setting review data', error.message);
+                                    });
                                 });
                             });
                             $('div.presetReviewBox .bottomarea textarea').attr('disabled', false);
@@ -477,7 +464,8 @@ FpvPresets.prototype.process_html = function(){
                 } else {
                     $('div.presetReviewBox .submit_btn').empty();
                     $('div.presetReviewBox .submit_btn')[0].innerHTML='<a class="signin" href="#">Sign in</a>';
-                    $('a.signin').click(function(){
+                    //TODO: clean repeating code
+                    $('a.signin').click(() => {
                         self.fpvPresets.authenticate();
                     });
                     $('div.presetReviewBox .bottomarea textarea').empty();
@@ -538,7 +526,7 @@ FpvPresets.prototype.process_html = function(){
             }
         });
 
-        $('a.signin').click(function(){
+        $('a.signin').click(() => {
             self.fpvPresets.authenticate();
         });
     });
