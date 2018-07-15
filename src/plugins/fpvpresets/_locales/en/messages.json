@@ -1,0 +1,26 @@
+{
+    "fpvp_translation_version": {
+        "message": "1"
+    },
+    "pidTuningPresets": {
+        "message": "Filter Presets"
+    },
+    "filterPresetOptionLoading": {
+        "message": "Loading ..."
+    },
+    "filterPresetAuthor": {
+        "message": "Author"
+    },
+    "filterPresetDescription": {
+        "message": "Description"
+    },
+    "filterPresetBody": {
+        "message": "Content"
+    },
+    "filterPresetLoad": {
+        "message": "Load"
+    },
+    "fpvPresetsCloseBrowser": {
+        "message": "You may close this window now and return to the application."
+    }
+}
