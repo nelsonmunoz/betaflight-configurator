@@ -1,0 +1,82 @@
+<div class="pidtuningpreset two_columns" style="width:100%;">
+    <div class="two_columns_first" style="width: 20%;">
+        <div class="profilep single-field" style="width:100%">
+            <div class="head" i18n="pidTuningPresets"></div>
+            <div class="bottomarea" style="padding-left:6px; padding-right:2px;width: calc(100% - 10px)">
+                <select name="tuningPresets" style="width: 100%">
+                    <option value="0" i18n="filterPresetOptionLoading">Loading ...</option>
+                </select>
+            </div>
+        </div>
+        <div class="presetAuthor single-field" style="display: none; margin-top: 5px; width:100%">
+            <div class="head" i18n="filterPresetAuthor" style="display: block;"></div>
+            <div class="bottomarea" style="padding-left:6px; padding-right:2px;width: calc(100% - 10px)">
+                <span>Author</span>
+            </div>
+        </div>
+        <div class="presetDescription single-field" style="display: none; margin-top: 5px; width:100%">
+            <div class="head" i18n="filterPresetDescription" style="display: block;"></div>
+            <div class="bottomarea" style="min-height: 97px; overflow-y: auto; padding-left:6px; padding-right:2px; width: calc(100% - 10px)">
+                <span>Description</span>
+            </div>
+        </div>
+    </div>
+    <div class="two_columns_second" style="max-width:80%">
+        <div style="display: flex">
+            <div class="presetBody pane single-field" style="display: none;">
+                <div class="head" i18n="filterPresetBody" style="width:100%"></div>
+                <div class="bottomarea" style="white-space: pre-wrap; max-width:600px; min-width: 250px; padding-left:6px;padding-right:2px; height: 201px; flex: 1; overflow-y: auto;">
+                    <span>Body</span>
+                </div>
+                <div class="btn default_btn load_preset_btn">
+                    <a class="loadPreset" href="#">
+                        <span class="fa fa-chevron-down"></span>
+                        <span i18n="filterPresetLoad" ></span>
+                        <span class="fa fa-chevron-down"></span>
+                    </a>
+                </div>
+            </div>
+            <div class="presetReviewBox pane single-field" style="margin-left: 30px; display:none;">
+                <div class="head" style="width:100%;display:flex;">
+                    <div>
+                        <span>Overall Rating : </span>
+                    </div>
+                    <div class="presetRating" style="margin-left: 10px;">
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star checked"></span>
+                        <span class="fa fa-star"></span>
+                        <span class="fa fa-star"></span>
+                    </div>
+                </div>
+                <div class="bottomarea" style="white-space: normal; max-width:600px; min-width: 317px; padding-left:6px;padding-right:2px; height: 201px; flex: 1; overflow-y: auto; position: relative;">
+                    <div class="reviewContainer" style="position: absolute; top: 5px; height: 200px; overflow-y: auto; width: calc(100% - 12px); height: calc(100% - 72px)">
+                        <div class="userReview" style="border: 1px solid silver; border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; padding: 3px">
+                            <div class="reviewHeader" style="display: flex; position:relative;">
+                                <div class="userRating">
+                                    <span class="fa fa-star checked"></span>
+                                    <span class="fa fa-star checked"></span>
+                                    <span class="fa fa-star checked"></span>
+                                    <span class="fa fa-star"></span>
+                                    <span class="fa fa-star"></span>
+                                </div>
+                                <div class="userName" style="margin-left: 15px">ultrafpv</div>
+                                <div class="reviewdate" style="position:absolute; right:25px">2018/06/27</div>
+                                <div class="flagIcon" style="position:absolute; right:5px">
+                                    <a class="reportReview" href="#">
+                                        <span class="fa fa-exclamation-triangle"></span>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="reviewBody" style="padding-top: 7px; padding-bottom: 5px;">This is preset SMOKED my props.</div>
+                        </div>
+                    </div>
+                    <textarea class="reviewText" rows="4" placeholder="Sign in to Rate and Review." maxlength="172" disabled style="border: 1px solid silver; resize:none; position: absolute; bottom: 5px; height:60px;"></textarea>
+                </div>
+                <div class="btn default_btn submit_btn">
+                    <a class="signin" href="#">Sign in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
