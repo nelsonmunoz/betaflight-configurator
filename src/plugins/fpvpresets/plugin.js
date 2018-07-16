@@ -1,27 +1,27 @@
 'use strict';
-var firebase = require("./plugins/fpvpresets/node_modules/firebase/index.node.js");
+var firebase = require('./plugins/fpvpresets/node_modules/firebase/index.node.js');
 var hash = require('./plugins/fpvpresets/node_modules/crypto-toolkit/crypto-toolkit.js').Hash('base64-urlsafe');
 var randomhash = require('./plugins/fpvpresets/node_modules/crypto-toolkit/crypto-toolkit.js').RandomHash('base64-urlsafe');
 var opn = require('./plugins/fpvpresets/node_modules/opn/index.js');
 var http = require('http');
-var querystring = require("querystring");
+var querystring = require('querystring');
 
 var firebase_config = {
-    apiKey: "AIzaSyDbIw3j6hy-UM5sGFmJG9KA_RF_GG1Ax7g",
-    authDomain: "fpvpresets-test1.firebaseapp.com",
-    databaseURL: "https://fpvpresets-test1.firebaseio.com",
-    projectId: "fpvpresets-test1",
-    storageBucket: "fpvpresets-test1.appspot.com",
-    messagingSenderId: "544264153980"
+    apiKey: 'AIzaSyDbIw3j6hy-UM5sGFmJG9KA_RF_GG1Ax7g',
+    authDomain: 'fpvpresets-test1.firebaseapp.com',
+    databaseURL: 'https://fpvpresets-test1.firebaseio.com',
+    projectId: 'fpvpresets-test1',
+    storageBucket: 'fpvpresets-test1.appspot.com',
+    messagingSenderId: '544264153980'
 };
 
 if(firebase.apps.length==0){
     firebase.initializeApp(firebase_config);
 }
 
-var sanitize = function(input){ 
-	return $('<div/>').text(input).html().replace(/\n/gi,'');
-}
+var sanitize = function(input){
+    return $('<div/>').text(input).html().replace(/\n/gi,'');
+};
 
 var FpvPresets = function (){
     var self = this;
@@ -44,13 +44,13 @@ var FpvPresets = function (){
             break;
     }
     self.initialize();
-}
+};
 
 FpvPresets.prototype.initialize = function (){
     var self = this;
     i18n.addResources(self.i18n_en);
     $('head').append('<link rel="stylesheet" type="text/css" href="./plugins/fpvpresets/css/fpvpresets.css">');
-    self._auth_server = http.createServer(function (req, res) {
+    self._auth_server = http.createServer((req, res) => {
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.write(i18n.getMessage('fpvPresetsCloseBrowser'));
         res.end();
@@ -58,25 +58,25 @@ FpvPresets.prototype.initialize = function (){
     });
 
     self._attachOnListening = function(auth_server){
-        auth_server.on('listening', function(){
-        self._state = randomhash.sha256();
-        self._code_verifier = randomhash.sha256();
-        var code_challenge = hash.sha256(self._code_verifier);
-        var code_challenge_method = 'S256';
-        var params = querystring.stringify( {
-            client_id: self._credentials.installed.client_id,
-            redirect_uri: `http://${self._redirect_uri}:${auth_server.address().port}`,
-            response_type: 'code',
-            scope: 'openid profile',
-            state: self._state,
-            code_challenge : code_challenge,
-            code_challenge_method : code_challenge_method
-        });
+        auth_server.on('listening', () => {
+            self._state = randomhash.sha256();
+            self._code_verifier = randomhash.sha256();
+            var code_challenge = hash.sha256(self._code_verifier);
+            var code_challenge_method = 'S256';
+            var params = querystring.stringify( {
+                client_id: self._credentials.installed.client_id,
+                redirect_uri: `http://${self._redirect_uri}:${auth_server.address().port}`,
+                response_type: 'code',
+                scope: 'openid profile',
+                state: self._state,
+                code_challenge : code_challenge,
+                code_challenge_method : code_challenge_method
+            });
 
-        opn(`${self._credentials.installed.auth_uri}?${params}`);
+            opn(`${self._credentials.installed.auth_uri}?${params}`);
 
         });
-    }
+    };
 
     self._attachOnListening(self._auth_server);
 
@@ -88,102 +88,108 @@ FpvPresets.prototype.initialize = function (){
         //return favico
         //i18n alerts
         if(req.url.includes('favico')){
-        return;
+            return;
         }
         var this_req = querystring.parse(req.url.split('?')[1]);
         self._querystring_parsed.push(this_req);
+        var msg;
         if('error' in this_req){
-        var msg = `Oauth authorization error: ${this_req.error}`;
-        GUI.log(msg);
-        alert(msg);
-        return;
+            msg = `Oauth authorization error: ${this_req.error}`;
+            GUI.log(msg);
+            alert(msg);
+            return;
         }
         if(this_req.code == null || this_req.state == null){
-        var msg = `Malformed authorization response: ${req}`;
-        GUI.log(msg);
-        alert(msg);
-        return;
+            msg = `Malformed authorization response: ${req}`;
+            GUI.log(msg);
+            alert(msg);
+            return;
         }
         if(this_req.state != self._state){
-        var msg = `Received request with invalid state: ${this_req.state}`;
-        GUI.log(msg);
-        alert(msg);
-        return;
+            msg = `Received request with invalid state: ${this_req.state}`;
+            GUI.log(msg);
+            alert(msg);
+            return;
         }
         self._performCodeExchange(this_req.code, self._code_verifier, `http://${self._redirect_uri}:${self._redirect_port}`);
-    }
+    };
     
     self._performCodeExchange = function(code, code_verifier, redirect_uri){
         var token_request_body = querystring.stringify({
-        code:code,
-        redirect_uri:redirect_uri,
-        client_id:self._credentials.installed.client_id,
-        code_verifier: code_verifier,
-        client_secret:self._credentials.installed.client_secret,
-        scope:'',
-        grant_type:'authorization_code'
+            code:code,
+            redirect_uri:redirect_uri,
+            client_id:self._credentials.installed.client_id,
+            code_verifier: code_verifier,
+            client_secret:self._credentials.installed.client_secret,
+            scope:'',
+            grant_type:'authorization_code'
         });
-        var jqXHR = $.post(
-        self._credentials.installed.token_uri,
-        token_request_body,
-        function(data){
-            //TODO: refresh tokens based on expiration
-            self.tokens = data;
-            var credential = firebase.auth.GoogleAuthProvider.credential(self.tokens.id_token);
-            firebase.auth().signInAndRetrieveDataWithCredential(credential).catch(error => {
-                // Handle Errors here.
-                console.log(`Errors here. ${error.code}`);
-                console.log(error.message);
-                // The email of the user's account used.
-                console.log(`The email of the user's account used.${error.email}`);
-                // The firebase.auth.AuthCredential type that was used.
-                console.log(`The firebase.auth.AuthCredential type that was used.${error.credential}`);
-                // ...
-            });
-        }
+        $.post(
+            self._credentials.installed.token_uri,
+            token_request_body,
+            data => {
+                //TODO: refresh tokens based on expiration
+                self.tokens = data;
+                var credential = firebase.auth.GoogleAuthProvider.credential(self.tokens.id_token);
+                firebase.auth().signInAndRetrieveDataWithCredential(credential).catch(error => {
+                    // Handle Errors here.
+                    console.log(`Errors here. ${error.code}`);
+                    console.log(error.message);
+                    // The email of the user's account used.
+                    console.log(`The email of the user's account used.${error.email}`);
+                    // The firebase.auth.AuthCredential type that was used.
+                    console.log(`The firebase.auth.AuthCredential type that was used.${error.credential}`);
+                    // ...
+                });
+            }
         ).fail(error => {
             GUI.log(`Error during token exchange: ${error.responseJSON.error}, ${error.responseJSON.error_description}`);
         });
         firebase.auth().onAuthStateChanged(() => {
             $('select[name="tuningPresets"]').trigger('change');
         });
-    }
-}
+    };
+};
 
 FpvPresets.prototype.authenticate = function(){
-  var self = this;
-  if(self._auth_server){
-    if(!self._auth_server.listening){
-      var port = self._redirect_port;
-      if(self._auth_server.address()){
-        port = self._auth_server.address().port;
-      }
-      self._auth_server.listen(port,self._redirect_uri);
-      //self._attachOnListening(self._auth_server);
-    }else {
-      GUI.log('Authetication server already listening.');
-      alert('Please check your browser window for initiated authentication.');
-    }
-  }else {
-    //TODO i18n
-    GUI.log('Error authenticating: FpvPresets not properly initialized.');
-  }
-}
-
-FpvPresets.prototype.process_html = function(){
     var self = this;
-    $.get('./plugins/fpvpresets/html/filter_presets.html', function(html){
+    if(self._auth_server){
+        if(!self._auth_server.listening){
+            var port = self._redirect_port;
+            if(self._auth_server.address()){
+                port = self._auth_server.address().port;
+            }
+            self._auth_server.listen(port,self._redirect_uri);
+            //self._attachOnListening(self._auth_server);
+        }else {
+            GUI.log('Authetication server already listening.');
+            alert('Please check your browser window for initiated authentication.');
+        }
+    }else {
+        //TODO i18n
+        GUI.log('Error authenticating: FpvPresets not properly initialized.');
+    }
+};
+
+FpvPresets.prototype.process_html = function(option=false){
+    var self = this;
+    $.get('./plugins/fpvpresets/html/filter_presets.html', html => {
+        $('div.pidtuningpreset').remove();
         $('div.subtab-filter div.note.topspacer').after(html);
+        if(option){
+            $('select[name="tuningPresets"]').val(option).change();
+        }
         i18n.localizePage();
-        function populatePresets(data){
+        var populatePresets = function(data){
+            var presets_e;
             if (data){
-                var presets_e = $('.profilep select[name="tuningPresets"]').empty();
-                presets_e.append($("<option value='0'>{0}</option>".format('Choose a Preset ...')));
+                presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                presets_e.append($('<option value="0">{0}</option>'.format('Choose a Preset ...')));
                 data.tree.forEach(file => {
-                    if( file.path.includes("Filters") && file.path.includes(".preset")){
+                    if( file.path.includes('Filters') && file.path.includes('.preset')){
                         var filename=/(Filters-.*).preset/.exec(file.path)[1];
                         var select_e =
-                        $("<option value='{0}'>{0}</option>".format(
+                        $('<option value="{0}">{0}</option>'.format(
                             filename
                         )).data('data', {'download_url':`https://raw.githubusercontent.com/ultrafpv/fpvpresets/master/${self._firmware}/${CONFIG.flightControllerVersion}/${file.path}`,'name':filename,'file_path':file.path});
                         presets_e.append(select_e);
@@ -200,7 +206,7 @@ FpvPresets.prototype.process_html = function(){
                         console.log(`Error retrieving info for ${data.file_path}.`);
                         console.log(error);
                     }
-                }
+                };
                 var star_string = function(stars_average){
                     var return_string = '';
                     for (var i=0; i<5; i++){
@@ -211,7 +217,7 @@ FpvPresets.prototype.process_html = function(){
                         }
                     }
                     return return_string;
-                }
+                };
                 $('.profilep select[name="tuningPresets"] option').each(function(index){
                     if(index>0){
                         var option = $(this);
@@ -223,43 +229,44 @@ FpvPresets.prototype.process_html = function(){
                                 .then(preset_ss => {
                                     if(preset_ss.val()){
                                         if(populateOptionData(preset_ss.val(),option)){
-                                            option.html(star_string(option.data('stars_average'))+' '+option.html());
+                                            option.html(`${star_string(option.data('stars_average'))} ${option.html()}`);
                                         }
                                     }else {
-                                        option.html(star_string(0)+' '+option.html());
+                                        option.html(`${star_string(0)} ${option.html()}`);
                                     }
-                            });
+                                });
                         }
                     }
                 });
             } else {
-                if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[CONFIG.flightControllerVersion+' presets','Not Found']))){
-                    var presets_e = $('.profilep select[name="tuningPresets"]').empty();
-                    presets_e.append($("<option value='0'>{0}</option>".format('No presets found for '+CONFIG.flightControllerVersion+' ...')));
+                if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[`${CONFIG.flightControllerVersion} presets`,'Not Found']))){
+                    presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                    presets_e.append($('<option value="0">{0}</option>'.format(`No presets found for ${CONFIG.flightControllerVersion} ...`)));
                 }else {
-                    var presets_e = $('.profilep select[name="tuningPresets"]').empty();
-                    presets_e.append($("<option value='0'>{0}</option>".format('Offline ...')));
+                    presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                    presets_e.append($('<option value="0">{0}</option>'.format('Offline ...')));
                 }
             }
-        }
-        var presetChecker = new ReleaseChecker(self._firmware+' presets directory','https://api.github.com/repos/ultrafpv/fpvpresets/contents/'+self._firmware);
+        };
+        var presetChecker = new ReleaseChecker(`${self._firmware} presets directory`,`https://api.github.com/repos/ultrafpv/fpvpresets/contents/${self._firmware}`);
         presetChecker.loadReleaseData(directory => {
             if(directory){
                 var presetDirsForVersion = [];
                 directory.forEach( entry => {
-                    if(entry.type == "dir" && (entry.name == CONFIG.flightControllerVersion || entry.name == 'Any')){
+                    if(entry.type == 'dir' && (entry.name == CONFIG.flightControllerVersion || entry.name == 'Any')){
                         presetDirsForVersion.push(entry.sha);
                     }
                 });
-                var presetDirTree = new ReleaseChecker(CONFIG.flightControllerVersion+' presets', 'https://api.github.com/repos/ultrafpv/fpvpresets/git/trees/'+presetDirsForVersion[0]+'?recursive=1');
+                var presetDirTree = new ReleaseChecker(`${CONFIG.flightControllerVersion} presets`, `https://api.github.com/repos/ultrafpv/fpvpresets/git/trees/${presetDirsForVersion[0]}?recursive=1`);
                 presetDirTree.loadReleaseData(populatePresets);
             } else {
-                if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[self._firmware+' presets directory','Not Found']))){
-                    var presets_e = $('.profilep select[name="tuningPresets"]').empty();
-                    presets_e.append($("<option value='0'>{0}</option>".format('No presets found for '+self._firmware+' ...')));
+                var presets_e;
+                if ($('div#main-wrapper #log')[0].innerHTML.includes(i18n.getMessage('releaseCheckFailed',[`${self._firmware} presets directory`,'Not Found']))){
+                    presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                    presets_e.append($('<option value="0">{0}</option>'.format(`No presets found for ${self._firmware} ...`)));
                 }else {
-                    var presets_e = $('.profilep select[name="tuningPresets"]').empty();
-                    presets_e.append($("<option value='0'>{0}</option>".format('Offline ...')));
+                    presets_e = $('.profilep select[name="tuningPresets"]').empty();
+                    presets_e.append($('<option value="0">{0}</option>'.format('Offline ...')));
                 }
             }
         });
@@ -268,9 +275,9 @@ FpvPresets.prototype.process_html = function(){
         $('select[name="tuningPresets"]').change(evt => { //TODO: Spinners!
             if(evt.target.selectedIndex>0)
             {
-                var data = $("option:selected", evt.target).data("data");
+                var data = $('option:selected', evt.target).data('data');
                 var presetBody = new ReleaseChecker(data['name'], data['download_url']);
-                presetBody.loadReleaseData(function (rawdata){
+                presetBody.loadReleaseData(rawdata => {
                     if(rawdata){
                         $('div.presetAuthor .bottomarea').text(/#AUTHOR:(.*)/.exec(rawdata)[1]);
                         $('div.presetDescription .bottomarea').text(/#DESCRIPTION:(.*)/.exec(rawdata)[1]);
@@ -290,7 +297,7 @@ FpvPresets.prototype.process_html = function(){
                     }
                 });
                 //TODO: handle realtime + offline
-                var average_stars = $("option:selected", evt.target).data("stars_average");
+                var average_stars = $('option:selected', evt.target).data('stars_average');
                 var setStars = function(div,stars){
                     for (var i=0; i<5; i++){
                         if(i<stars){
@@ -304,9 +311,9 @@ FpvPresets.prototype.process_html = function(){
                         }
                     }
                     return div;
-                }
+                };
                 setStars($('div.presetRating'),average_stars);
-                var review_refs = $("option:selected", evt.target).data("reviews");
+                var review_refs = $('option:selected', evt.target).data('reviews');
                 //TODO: fetch according to scrollbar
                 //use a template for the event
                 //hide based on reporting
@@ -318,8 +325,8 @@ FpvPresets.prototype.process_html = function(){
                     <span class="fa fa-star"></span>
                     <span class="fa fa-star"></span>
                     <span class="fa fa-star"></span>
-                </div>`
-                }
+                </div>`;
+                };
                 $('div.reviewContainer').empty();
                 for (var key in review_refs) {
                     if(review_refs[key]&&key!='empty'){
@@ -347,17 +354,18 @@ FpvPresets.prototype.process_html = function(){
                     }
                 }
                 if(firebase.auth().currentUser){
-                    firebase.database().ref('/users/'+firebase.auth().currentUser.uid)
+                    firebase.database().ref(`/users/${firebase.auth().currentUser.uid}`)
                         .once('value')
                         .then(user_ss => {
                             //TODO: check for null results
                             var user_reviews = user_ss.val().reviews;
                             $('textarea.reviewText').data('pilot_handle',user_ss.val().pilot_handle);
                             // Check against preset file existing in github without entry in firebase
-                            if($("option:selected", evt.target).data("reviews")){
-                                var preset_reviews = Object.keys($("option:selected", evt.target).data("reviews"));
+                            var preset_reviews;
+                            if($('option:selected', evt.target).data('reviews')){
+                                preset_reviews = Object.keys($('option:selected', evt.target).data('reviews'));
                             } else {
-                                var preset_reviews = [];
+                                preset_reviews = [];
                             }
                             var user_preset_review = null;
                             for (const preset_review of preset_reviews) {
@@ -367,8 +375,8 @@ FpvPresets.prototype.process_html = function(){
                                 }
                             }
                             $('div.presetReviewBox .submit_btn').empty();
-                            var rating_button_class =  user_preset_review?'updateRating':'newRating'
-                            $('div.presetReviewBox .submit_btn')[0].outerHTML=stars_div_body('btn default_btn submit_btn '+rating_button_class);
+                            var rating_button_class =  user_preset_review?'updateRating':'newRating';
+                            $('div.presetReviewBox .submit_btn')[0].outerHTML=stars_div_body(`btn default_btn submit_btn ${rating_button_class}`);
                             $('div.presetReviewBox .submit_btn').prepend(`<span>${user_preset_review?'Update Rating: ':'Submit Rating: '}</span>`);
                             var user_rating;
                             if(user_preset_review){
@@ -405,56 +413,56 @@ FpvPresets.prototype.process_html = function(){
                                     }
                                     $('textarea.reviewText').prop('disabled',true);
                                     var rating=0;
-                                    $(`div.presetReviewBox .submit_btn.${rating_button_class} span.fa-star`).each(function(index){
+                                    $(`div.presetReviewBox .submit_btn.${rating_button_class} span.fa-star`).each(function(){
                                         if($(this).hasClass('checked')){
                                             rating++;
                                         }
                                     });
                                     $('div.presetReviewBox .submit_btn').empty();
-                                    $('div.presetReviewBox .submit_btn')[0].outerHTML=stars_div_body('btn default_btn submit_btn '+rating_button_class);
+                                    $('div.presetReviewBox .submit_btn')[0].outerHTML=stars_div_body(`btn default_btn submit_btn ${rating_button_class}`);
                                     $('div.presetReviewBox .submit_btn').prepend('<span>Submiting...</span>');
                                     setStars($(`div.presetReviewBox .submit_btn.${rating_button_class}`),rating);
                                     var path=`${self._firmware}/${CONFIG.flightControllerVersion}/${$('select[name="tuningPresets"] option:selected').data('data').file_path}`;
                                     var new_review_key=firebase.database().ref('/reviews').push().key;
-                                    firebase.database().ref('/reviews/'+new_review_key)
-                                    .set({
-                                        'body':body,
-                                        'pilot_handle': $('textarea.reviewText').data('pilot_handle'),
-                                        'preset':path,
-                                        'reported':0,
-                                        'stars':rating,
-                                        'timestamp':Math.round((new Date()).getTime() / 1000)
-                                    })
-                                    .then(() => {
-                                        return firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}`).once('value')
-                                    })
-                                    .then(preset_ss => {
-                                        var preset_reviews=preset_ss.val().reviews;
-                                        if('empty' in preset_reviews){
-                                            preset_reviews={};
-                                        }
-                                        preset_reviews[new_review_key]=true;
-                                        return firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}/reviews`).set(preset_reviews) //Reference review from preset
-                                    })
-                                    .then(() => {
-                                        return firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`).once('value')
-                                    })
-                                    .then(preset_reviews_sn => {
-                                        var user_reviews=preset_reviews_sn.val();
-                                        user_reviews[new_review_key]=true;
-                                        return firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`).set(user_reviews) //Reference review from users
-                                    })
-                                    .then(() => {
-                                        return $('select[name="tuningPresets"]').change();
-                                    })
-                                    .catch(error=>{
-                                        console.log('Error setting review data', error.message);
-                                    });
+                                    firebase.database().ref(`/reviews/${new_review_key}`)
+                                        .set({
+                                            'body':body,
+                                            'pilot_handle': $('textarea.reviewText').data('pilot_handle'),
+                                            'preset':path,
+                                            'reported':0,
+                                            'stars':rating,
+                                            'timestamp':Math.round((new Date()).getTime() / 1000)
+                                        })
+                                        .then(() => {
+                                            return firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}`).once('value');
+                                        })
+                                        .then(preset_ss => {
+                                            var preset_reviews=preset_ss.val().reviews;
+                                            if('empty' in preset_reviews){
+                                                preset_reviews={};
+                                            }
+                                            preset_reviews[new_review_key]=true;
+                                            return firebase.database().ref(`/presets/${$('select[name="tuningPresets"] option:selected').data('preset_uid')}/reviews`).set(preset_reviews); //Reference review from preset
+                                        })
+                                        .then(() => {
+                                            return firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`).once('value');
+                                        })
+                                        .then(preset_reviews_sn => {
+                                            var user_reviews=preset_reviews_sn.val();
+                                            user_reviews[new_review_key]=true;
+                                            return firebase.database().ref(`/users/${firebase.auth().currentUser.uid}/reviews`).set(user_reviews); //Reference review from users
+                                        })
+                                        .then(() => {
+                                            return $('select[name="tuningPresets"]').change();
+                                        })
+                                        .catch(error=>{
+                                            console.log('Error setting review data', error.message);
+                                        });
                                 });
                             });
                             $('div.presetReviewBox .bottomarea textarea').attr('disabled', false);
                             $('div.presetReviewBox .bottomarea textarea').prop('placeholder', 'Write your review here. What did you like the most? What did you like the least?');
-                        },function(error){
+                        },error => {
                             console.log(error);
                         });
                 } else {
@@ -469,49 +477,49 @@ FpvPresets.prototype.process_html = function(){
                     $('div.presetReviewBox .bottomarea textarea').prop('placeholder', 'Sign in to Rate and Review.');
                 }
             }
-        })
+        });
 
-        $('a.loadPreset').click(function () {
+        $('a.loadPreset').click(() => {
             var preset = $('div.presetBody .bottomarea')[0].innerText;
             if (preset){
                 var filterTypeToVal = function (type){
                     switch (type){
-                        case "PT1":
+                        case 'PT1':
                             return 0;
-                        case "BIQUAD":
+                        case 'BIQUAD':
                             return 1;
-                        case "FIR":
+                        case 'FIR':
                             return 2;
                     }
-                }
-                function camelize(str) {
-                    return str.replace(/-([a-z])|_([a-z])|\s([a-z])/g, function(letter, index) {
-                    return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+                };
+                var camelize = function(str) {
+                    return str.replace(/-([a-z])|_([a-z])|\s([a-z])/g, (letter, index) => {
+                        return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
                     }).replace(/\s+|-|_/g, '').replace(/Hz$/g,'Frequency');
-                }
+                };
                 var setControlValue = function (lines){
-                    lines.forEach(function (line){
+                    lines.forEach(line => {
                         var filterSuffixed = camelize(line.command);
-                        var suffix = line.command.match(/.*\_(.*)$/)[1];
+                        var suffix = line.command.match(/.*_(.*)$/)[1];
                         switch (suffix){
                             case 'type':
-                                $('.pid_filter select[name="'+filterSuffixed+'"]').val(filterTypeToVal(line.value));
+                                $(`.pid_filter select[name="${filterSuffixed}"]`).val(filterTypeToVal(line.value));
                                 break;
                             default:
                                 var enabled = filterSuffixed.replace('Frequency','Enabled');
-                                $('input[id="'+enabled+'"]').prop('checked', line.value != 0).change();
+                                $(`input[id="${enabled}"]`).prop('checked', line.value != 0).change();
                                 if(filterSuffixed == 'dtermNotchFrequency'){
                                     filterSuffixed = 'dTermNotchFrequency';
                                 } else if(filterSuffixed == 'dtermNotchCutoff'){
                                     filterSuffixed = 'dTermNotchCutoff';
                                 }
-                                $('.pid_filter input[name="'+filterSuffixed+'"]').val(line.value);
+                                $(`.pid_filter input[name="${filterSuffixed}"]`).val(line.value);
                                 console.log(filterSuffixed);
                                 console.log(line.value);
                                 break;
                         }
-                    })
-                }
+                    });
+                };
                 var matchGroups;
                 var commands = [];
                 var re = new RegExp('^set\\s+(\\S+?)\\s*=\\s*(\\S[^=]*?)$','igm');
@@ -526,12 +534,14 @@ FpvPresets.prototype.process_html = function(){
             self.fpvPresets.authenticate();
         });
     });
-}
+};
 
 var temp = TABS.pid_tuning.initialize.toString();
 temp = temp.replace('function (callback)','');
-temp = temp.replace('GUI.content_ready(callback);',
-`self.fpvPresets = new FpvPresets();
-self.fpvPresets.process_html();
-GUI.content_ready(callback);`);
+temp = temp.replace(
+    'GUI.content_ready(callback);',
+    `self.fpvPresets = new FpvPresets();
+    self.fpvPresets.process_html();
+    GUI.content_ready(callback);`
+);
 TABS.pid_tuning.initialize = new Function('callback',temp);
