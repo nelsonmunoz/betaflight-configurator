@@ -19,12 +19,8 @@ if(firebase.apps.length==0){
     firebase.initializeApp(firebase_config);
 }
 
-var sanitize = function(input){
-	var output = input.replace(/<script[^>]*?>.*?<\/script>/gi, '').
-					replace(/<[\/\!]*?[^<>]*?>/gi, '').
-					replace(/<style[^>]*?>.*?<\/style>/gi, '').
-					replace(/<![\s\S]*?--[ \t\n\r]*>/gi, '');
-	return output;
+var sanitize = function(input){ 
+	return $('<div/>').text(input).html().replace(/\n/gi,'');
 }
 
 var FpvPresets = function (){
@@ -276,16 +272,16 @@ FpvPresets.prototype.process_html = function(){
                 var presetBody = new ReleaseChecker(data['name'], data['download_url']);
                 presetBody.loadReleaseData(function (rawdata){
                     if(rawdata){
-                        $('div.presetAuthor .bottomarea').html(/#AUTHOR:(.*)/.exec(rawdata)[1]);
-                        $('div.presetDescription .bottomarea').html(/#DESCRIPTION:(.*)/.exec(rawdata)[1]);
-                        $('div.presetBody .bottomarea').text(sanitize(rawdata.replace(/#.*([\n\r|\n|\r])/g,'')));
+                        $('div.presetAuthor .bottomarea').text(/#AUTHOR:(.*)/.exec(rawdata)[1]);
+                        $('div.presetDescription .bottomarea').text(/#DESCRIPTION:(.*)/.exec(rawdata)[1]);
+                        $('div.presetBody .bottomarea').text(rawdata.replace(/#.*([\n\r|\n|\r])/g,''));
                         $('div.presetAuthor').show();
                         $('div.presetDescription').show();
                         $('div.presetBody').show();
                         $('div.presetReviewBox').show();
                     } else {
-                        $('div.presetAuthor .bottomarea').html('Offline ...');
-                        $('div.presetDescription .bottomarea').html('Offline ...');
+                        $('div.presetAuthor .bottomarea').text('Offline ...');
+                        $('div.presetDescription .bottomarea').text('Offline ...');
                         $('div.presetBody .bottomarea').text('Offline ...');
                         $('div.presetAuthor').show();
                         $('div.presetDescription').show();
